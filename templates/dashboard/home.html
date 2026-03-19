@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Dashboard — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0f0f14]">
+
+  <!-- Header / Navigation -->
+  <header class="border-b border-white/5 px-4 py-4 sticky top-0 z-40 backdrop-blur-xl bg-[#0f0f14]/80">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945"/>
+          </svg>
+        </div>
+        <span class="font-semibold text-white text-sm hidden sm:block">AMN Employee Hub</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3">
+        <!-- Avatar -->
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600
+                    flex items-center justify-center text-white text-sm font-semibold">
+          {{ user.initials }}
+        </div>
+        <!-- Déconnexion -->
+        <a href="{% url 'users:logout' %}"
+           class="text-xs text-white/40 hover:text-white/70 transition-colors px-3 py-2
+                  glass rounded-xl">
+          {% translate "Déconnexion" %}
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenu -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Message de bienvenue -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-2xl font-bold text-white mb-1">
+        {% blocktranslate with name=user.first_name|default:user.username %}
+          Bonjour, {{ name }} 👋
+        {% endblocktranslate %}
+      </h1>
+      <p class="text-white/40 text-sm">
+        {% translate "Bienvenue sur votre espace AMN Employee Hub." %}
+        {% if not user.is_verified %}
+          <span class="text-yellow-400 ml-2">
+            ⚠️ {% translate "Votre email n'est pas encore vérifié." %}
+            <a href="{% url 'users:verify_email' %}" class="underline hover:no-underline">{% translate "Vérifier maintenant" %}</a>
+          </span>
+        {% endif %}
+      </p>
+    </div>
+
+    <!-- Cartes modules (placeholder) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-slide-up">
+
+      <!-- Module Learning -->
+      <div class="glass rounded-3xl p-6 hover:bg-white/5 transition-all duration-300 cursor-pointer group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20
+                    border border-blue-500/20 flex items-center justify-center mb-4
+                    group-hover:scale-110 transition-transform duration-300">
+          <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-white mb-1">{% translate "Formation & Onboarding" %}</h3>
+        <p class="text-xs text-white/40">{% translate "Bientôt disponible" %}</p>
+      </div>
+
+      <!-- Module Inventory -->
+      <div class="glass rounded-3xl p-6 hover:bg-white/5 transition-all duration-300 cursor-pointer group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500/20 to-purple-600/20
+                    border border-violet-500/20 flex items-center justify-center mb-4
+                    group-hover:scale-110 transition-transform duration-300">
+          <svg class="w-6 h-6 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-white mb-1">{% translate "Inventaire Matériel" %}</h3>
+        <p class="text-xs text-white/40">{% translate "Bientôt disponible" %}</p>
+      </div>
+
+      <!-- Module Social -->
+      <div class="glass rounded-3xl p-6 hover:bg-white/5 transition-all duration-300 cursor-pointer group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-green-500/20 to-teal-600/20
+                    border border-green-500/20 flex items-center justify-center mb-4
+                    group-hover:scale-110 transition-transform duration-300">
+          <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-white mb-1">SkillSwap & Ideas Box</h3>
+        <p class="text-xs text-white/40">{% translate "Bientôt disponible" %}</p>
+      </div>
+
+      <!-- Lien profil -->
+      <a href="{% url 'users:profile' %}"
+         class="glass rounded-3xl p-6 hover:bg-white/5 transition-all duration-300 group">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-600/20
+                    border border-orange-500/20 flex items-center justify-center mb-4
+                    group-hover:scale-110 transition-transform duration-300">
+          <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+          </svg>
+        </div>
+        <h3 class="font-semibold text-white mb-1">{% translate "Mon Profil" %}</h3>
+        <p class="text-xs text-white/40">{{ user.department }} · {{ user.get_country_display }}</p>
+      </a>
+
+    </div>
+  </main>
+</div>
+{% endblock %}

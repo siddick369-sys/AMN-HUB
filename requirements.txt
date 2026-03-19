@@ -1,0 +1,25 @@
+# AMN Employee Hub — Dépendances Python
+# Généré pour Django 5.2+
+
+# Framework
+django>=5.2
+
+# Base de données PostgreSQL
+psycopg2-binary>=2.9
+
+# Configuration via .env
+python-decouple>=3.8
+
+# Cache & Session (Redis)
+django-redis>=6.0
+redis>=5.0
+
+# Tâches asynchrones
+celery>=5.3
+django-celery-beat>=2.6
+
+# Images / Avatars
+Pillow>=10.0
+
+# QR Codes (pour module comms)
+qrcode[pil]>=7.4

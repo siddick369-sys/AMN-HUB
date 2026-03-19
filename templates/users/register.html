@@ -1,0 +1,185 @@
+{% extends "users/auth_base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Inscription" %} — AMN Employee Hub{% endblock %}
+
+{% block auth_content %}
+
+<div class="animate-slide-up">
+  <!-- Titre -->
+  <div class="mb-6">
+    <h2 class="text-2xl font-bold text-white">{% translate "Créer un compte" %} ✨</h2>
+    <p class="text-white/40 text-sm mt-1">{% translate "Rejoignez l'espace employé Africa Mobile Networks" %}</p>
+  </div>
+
+  <!-- Formulaire -->
+  <form method="post" novalidate class="space-y-4">
+    {% csrf_token %}
+
+    <!-- Ligne Prénom / Nom -->
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+          {% translate "Prénom" %} <span class="text-red-400">*</span>
+        </label>
+        {{ form.first_name }}
+        {% if form.first_name.errors %}
+          <p class="mt-1 text-xs text-red-400">{{ form.first_name.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+          {% translate "Nom" %} <span class="text-red-400">*</span>
+        </label>
+        {{ form.last_name }}
+        {% if form.last_name.errors %}
+          <p class="mt-1 text-xs text-red-400">{{ form.last_name.errors|join:", " }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Email -->
+    <div>
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Email professionnel" %} <span class="text-red-400">*</span>
+      </label>
+      {{ form.email }}
+      {% if form.email.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.email.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Nom d'utilisateur -->
+    <div>
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Nom d'utilisateur" %} <span class="text-red-400">*</span>
+      </label>
+      {{ form.username }}
+      {% if form.username.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.username.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Département / Pays -->
+    <div class="grid grid-cols-2 gap-3">
+      <div>
+        <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+          {% translate "Département" %}
+        </label>
+        {{ form.department }}
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+          {% translate "Pays" %}
+        </label>
+        {{ form.country }}
+      </div>
+    </div>
+
+    <!-- Langue préférée -->
+    <div>
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Langue préférée" %}
+      </label>
+      {{ form.preferred_language }}
+    </div>
+
+    <!-- Mot de passe -->
+    <div>
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Mot de passe" %} <span class="text-red-400">*</span>
+      </label>
+      <div class="relative">
+        {{ form.password1 }}
+        <button type="button" id="toggle-pw1"
+                class="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </button>
+      </div>
+      <!-- Indicateur de force du mot de passe -->
+      <div class="flex gap-1 mt-2" id="strength-bars">
+        <div class="h-1 flex-1 rounded-full bg-white/10 transition-all duration-300" id="bar-1"></div>
+        <div class="h-1 flex-1 rounded-full bg-white/10 transition-all duration-300" id="bar-2"></div>
+        <div class="h-1 flex-1 rounded-full bg-white/10 transition-all duration-300" id="bar-3"></div>
+        <div class="h-1 flex-1 rounded-full bg-white/10 transition-all duration-300" id="bar-4"></div>
+      </div>
+      {% if form.password1.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.password1.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Confirmation mot de passe -->
+    <div>
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Confirmer le mot de passe" %} <span class="text-red-400">*</span>
+      </label>
+      {{ form.password2 }}
+      {% if form.password2.errors %}
+        <p class="mt-1 text-xs text-red-400">{{ form.password2.errors|join:", " }}</p>
+      {% endif %}
+    </div>
+
+    <!-- CGU -->
+    <p class="text-xs text-white/30 leading-relaxed">
+      {% translate "En créant un compte, vous acceptez les conditions d'utilisation internes d'AMN." %}
+    </p>
+
+    <!-- Bouton -->
+    <button type="submit"
+            class="btn-primary w-full py-3.5 rounded-2xl text-sm font-semibold text-white
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                   focus:ring-offset-transparent mt-2">
+      {% translate "Créer mon compte" %}
+    </button>
+  </form>
+
+  <!-- Lien login -->
+  <p class="text-center text-sm text-white/40 mt-5">
+    {% translate "Déjà un compte ?" %}
+    <a href="{% url 'users:login' %}"
+       class="text-blue-400 hover:text-blue-300 font-medium ml-1 transition-colors">
+      {% translate "Se connecter" %}
+    </a>
+  </p>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Toggle password visibility
+  function toggleVisibility(btnId, inputId) {
+    const btn   = document.getElementById(btnId);
+    const input = document.getElementById(inputId);
+    if (btn && input) {
+      btn.addEventListener('click', () => {
+        input.type = input.type === 'password' ? 'text' : 'password';
+      });
+    }
+  }
+  toggleVisibility('toggle-pw1', '{{ form.password1.id_for_label }}');
+
+  // Indicateur force du mot de passe
+  const pwInput = document.getElementById('{{ form.password1.id_for_label }}');
+  if (pwInput) {
+    pwInput.addEventListener('input', () => {
+      const v = pwInput.value;
+      let score = 0;
+      if (v.length >= 8)            score++;
+      if (/[A-Z]/.test(v))          score++;
+      if (/[0-9]/.test(v))          score++;
+      if (/[^A-Za-z0-9]/.test(v))   score++;
+
+      const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
+      for (let i = 1; i <= 4; i++) {
+        const bar = document.getElementById(`bar-${i}`);
+        bar.className = 'h-1 flex-1 rounded-full transition-all duration-300 ' +
+          (i <= score ? colors[score - 1] : 'bg-white/10');
+      }
+    });
+  }
+</script>
+{% endblock %}

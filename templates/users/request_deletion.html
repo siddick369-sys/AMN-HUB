@@ -1,0 +1,89 @@
+{% extends "users/auth_base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Supprimer mon compte" %} — AMN Employee Hub{% endblock %}
+
+{% block auth_content %}
+<div class="animate-slide-up">
+
+  <!-- Icône avertissement -->
+  <div class="flex justify-center mb-5">
+    <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl
+                bg-red-500/10 border border-red-500/20">
+      <svg class="w-7 h-7 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+      </svg>
+    </div>
+  </div>
+
+  <h2 class="text-2xl font-bold text-white mb-2">{% translate "Supprimer mon compte" %}</h2>
+
+  <!-- Bloc d'avertissement -->
+  <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 mb-6">
+    <p class="text-sm text-red-300 leading-relaxed mb-3">
+      {% translate "Cette action va geler votre compte. Voici ce qui se passera :" %}
+    </p>
+    <ul class="space-y-2">
+      {% for item in "1 2 3"|split:" " %}{% endfor %}
+      <li class="flex items-start gap-2 text-sm text-white/60">
+        <span class="text-red-400 mt-0.5">→</span>
+        {% translate "Votre compte sera immédiatement gelé et inaccessible." %}
+      </li>
+      <li class="flex items-start gap-2 text-sm text-white/60">
+        <span class="text-red-400 mt-0.5">→</span>
+        {% translate "Vous recevrez un email avec un lien pour annuler sous 30 jours." %}
+      </li>
+      <li class="flex items-start gap-2 text-sm text-white/60">
+        <span class="text-red-400 mt-0.5">→</span>
+        {% translate "Après 30 jours, toutes vos données seront supprimées définitivement." %}
+      </li>
+    </ul>
+  </div>
+
+  <!-- Formulaire de confirmation -->
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div class="mb-5">
+      <label class="block text-xs font-medium text-white/50 mb-1.5 uppercase tracking-wider">
+        {% translate "Tapez DELETE pour confirmer" %}
+      </label>
+      <input type="text" name="confirm" id="confirm-input"
+             class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl
+                    text-white placeholder-white/20 focus:outline-none focus:ring-2
+                    focus:ring-red-500 focus:border-transparent transition-all duration-200
+                    font-mono tracking-widest text-center"
+             placeholder="DELETE"
+             autocomplete="off" />
+    </div>
+
+    <button type="submit" id="delete-btn"
+            class="w-full py-3.5 rounded-2xl text-sm font-semibold text-white
+                   bg-red-500/80 hover:bg-red-500 transition-all duration-200
+                   focus:outline-none focus:ring-2 focus:ring-red-500
+                   disabled:opacity-30 disabled:cursor-not-allowed"
+            disabled>
+      {% translate "Supprimer mon compte définitivement" %}
+    </button>
+  </form>
+
+  <p class="text-center text-sm text-white/40 mt-5">
+    <a href="{% url 'dashboard:home' %}"
+       class="text-blue-400 hover:text-blue-300 font-medium transition-colors">
+      ← {% translate "Annuler et retourner au dashboard" %}
+    </a>
+  </p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Activer le bouton seulement quand "DELETE" est tapé exactement
+  const input = document.getElementById('confirm-input');
+  const btn   = document.getElementById('delete-btn');
+  input.addEventListener('input', () => {
+    btn.disabled = input.value.trim() !== 'DELETE';
+  });
+</script>
+{% endblock %}
