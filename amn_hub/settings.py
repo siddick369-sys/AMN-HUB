@@ -15,6 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = config('SECRET_KEY', default='amn-hub-dev-key-change-me')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 # ─────────────────────────────────────────────
 # APPLICATIONS
@@ -84,15 +85,8 @@ WSGI_APPLICATION = 'amn_hub.wsgi.application'
 # ─────────────────────────────────────────────
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('DB_NAME', default='amn_hub_db'),
-        'USER': config('DB_USER', default='amn_hub_user'),
-        'PASSWORD': config('DB_PASSWORD', default='amn_hub_secure_pass'),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
-        'OPTIONS': {
-            'connect_timeout': 10,
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -101,22 +95,24 @@ DATABASES = {
 # ─────────────────────────────────────────────
 REDIS_URL = config('REDIS_URL', default='redis://localhost:6379/0')
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'SOCKET_CONNECT_TIMEOUT': 5,
-            'SOCKET_TIMEOUT': 5,
-            'CONNECTION_POOL_KWARGS': {'max_connections': 100},
-        },
-        'KEY_PREFIX': 'amn_hub',
-        'TIMEOUT': 300,
+if config('USE_REDIS', default=False, cast=bool):
+    CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            },
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        }
+    }
 
-# Sessions via Redis
+# Sessions via Cache
 SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
 SESSION_CACHE_ALIAS = 'default'
 SESSION_COOKIE_AGE = 86400 * 7  # 7 jours
@@ -203,6 +199,11 @@ ACCOUNT_DELETION_DELAY_DAYS = 30
 # ─────────────────────────────────────────────
 # DIVERS
 # ─────────────────────────────────────────────
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 if not DEBUG:

@@ -79,12 +79,20 @@
   const codeInput = document.getElementById('{{ form.code.id_for_label }}');
   if (codeInput) {
     codeInput.focus();
+    let isSubmitting = false;
     codeInput.addEventListener('input', (e) => {
+      if (isSubmitting) return;
+      
       // Permettre seulement les chiffres
       e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+      
       // Auto-submit quand 6 chiffres saisis
       if (e.target.value.length === 6) {
-        e.target.closest('form').querySelector('[name="verify"]').click();
+        isSubmitting = true;
+        const btn = e.target.closest('form').querySelector('[name="verify"]');
+        btn.disabled = true;
+        btn.innerHTML = '...';
+        e.target.closest('form').submit();
       }
     });
   }
