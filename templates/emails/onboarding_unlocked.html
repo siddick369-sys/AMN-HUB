@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nouvelles étapes débloquées — AMN Employee Hub</title>
+  <style>
+    body { margin:0; padding:0; background:#0f0f14; font-family: 'Helvetica Neue', Arial, sans-serif; }
+    .wrapper { max-width:560px; margin:0 auto; padding:40px 20px; }
+    .card { background:#16161e; border:1px solid rgba(255,255,255,0.08); border-radius:24px; overflow:hidden; }
+    .header { background:linear-gradient(135deg,#3B82F6,#8B5CF6); padding:28px 32px; }
+    .header h1 { margin:0; color:#fff; font-size:18px; font-weight:700; }
+    .header p { margin:4px 0 0; color:rgba(255,255,255,0.7); font-size:12px; }
+    .body { padding:28px 32px; }
+    .greeting { color:#fff; font-size:15px; margin-bottom:16px; }
+    .text { color:rgba(255,255,255,0.5); font-size:14px; line-height:1.6; margin-bottom:16px; }
+    .step { background:rgba(59,130,246,0.05); border:1px solid rgba(59,130,246,0.15); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .step-day { font-size:11px; color:#60A5FA; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:4px; }
+    .step-title { color:#fff; font-size:14px; font-weight:600; margin-bottom:6px; }
+    .task { color:rgba(255,255,255,0.5); font-size:12px; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.04); }
+    .task:last-child { border-bottom:none; }
+    .btn { display:block; background:linear-gradient(135deg,#3B82F6,#6366F1); color:#fff; text-decoration:none; text-align:center; padding:14px 32px; border-radius:12px; font-size:14px; font-weight:600; margin:24px 0 8px; }
+    .footer { padding:16px 32px; border-top:1px solid rgba(255,255,255,0.06); text-align:center; }
+    .footer p { color:rgba(255,255,255,0.2); font-size:11px; margin:0; }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="card">
+    <div class="header">
+      <h1>🔓 Nouvelles étapes débloquées !</h1>
+      <p>AMN Employee Hub — Onboarding</p>
+    </div>
+    <div class="body">
+      <p class="greeting">Bonjour {{ user.first_name|default:user.username }},</p>
+      <p class="text">
+        Aujourd'hui marque le <strong style="color:#fff">Jour {{ days_elapsed }}</strong> de votre intégration chez Africa Mobile Networks.
+        De nouvelles étapes sont maintenant disponibles pour vous !
+      </p>
+
+      {% for step in new_steps %}
+      <div class="step">
+        <div class="step-day">J+{{ step.day_number }} — {{ step.title }}</div>
+        {% for task in step.tasks.all %}
+        <div class="task">
+          {% if task.task_type == 'READ' %}📖{% elif task.task_type == 'WATCH' %}🎥{% elif task.task_type == 'MEET' %}🤝{% else %}⚡{% endif %}
+          {{ task.title }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+
+      <a href="{{ journey_url }}" class="btn">🚀 Voir mon parcours d'intégration</a>
+    </div>
+    <div class="footer">
+      <p>© {% now "Y" %} Africa Mobile Networks · AMN Employee Hub</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

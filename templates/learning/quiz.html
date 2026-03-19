@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ quiz.title }} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0f0f14] flex flex-col">
+
+  <!-- Header quiz -->
+  <header class="border-b border-white/5 px-4 py-4 flex-shrink-0">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'learning:course_detail' quiz.course.pk %}"
+           class="text-white/40 hover:text-white/70 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-semibold text-white text-sm">{{ quiz.title }}</h1>
+          <p class="text-white/30 text-xs">{{ quiz.course.title }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs text-white/30">
+        <span>{{ attempts_left }} {% translate "tentative(s) restante(s)" %}</span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
+        <span>{% translate "Requis :" %} {{ quiz.passing_score_percentage }}%</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Barre de progression quiz -->
+  <div id="quiz-progress-bar" class="h-0.5 bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-500"
+       style="width: 0%"></div>
+
+  <!-- Corps du quiz -->
+  <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+
+    {% if best_attempt and best_attempt.passed %}
+    <!-- Déjà réussi -->
+    <div class="glass rounded-3xl p-8 text-center border border-green-500/20">
+      <p class="text-5xl mb-4">🏆</p>
+      <h2 class="text-xl font-bold text-white mb-2">{% translate "Quiz déjà réussi !" %}</h2>
+      <p class="text-white/40">{% translate "Vous avez obtenu" %} {{ best_attempt.score_percentage|floatformat:0 }}%</p>
+      <a href="{% url 'learning:course_detail' quiz.course.pk %}"
+         class="inline-block mt-6 btn-primary px-6 py-3 rounded-2xl text-sm font-semibold text-white">
+        {% translate "Retour au cours" %}
+      </a>
+    </div>
+    {% else %}
+
+    <form method="post" id="quiz-form" novalidate>
+      {% csrf_token %}
+      <div class="space-y-6" id="questions-container">
+        {% for question in quiz.questions.all %}
+        <div class="quiz-question glass rounded-3xl p-6 animate-fade-in"
+             id="question-{{ forloop.counter }}"
+             data-question="{{ forloop.counter }}"
+             style="animation-delay: {{ forloop.counter0 }}00ms">
+
+          <!-- Numéro + Énoncé -->
+          <div class="flex items-start gap-3 mb-5">
+            <span class="flex-shrink-0 w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20
+                         flex items-center justify-center text-xs font-bold text-blue-400">
+              {{ forloop.counter }}
+            </span>
+            <p class="text-white font-medium leading-relaxed">{{ question.text }}</p>
+          </div>
+
+          {% if question.is_multiple_choice %}
+          <p class="text-xs text-white/30 mb-3">
+            <span class="px-2 py-0.5 bg-violet-500/10 rounded-full border border-violet-500/20 text-violet-400">
+              {% translate "Plusieurs réponses possibles" %}
+            </span>
+          </p>
+          {% endif %}
+
+          <!-- Choix de réponses — Boutons larges -->
+          <div class="space-y-2">
+            {% for choice in question.choices.all %}
+            <label class="flex items-center gap-3 p-4 rounded-2xl cursor-pointer
+                          border border-white/5 hover:border-white/15 hover:bg-white/5
+                          transition-all duration-200 group choice-label"
+                   for="choice-{{ choice.pk }}">
+              <input
+                type="{% if question.is_multiple_choice %}checkbox{% else %}radio{% endif %}"
+                name="question_{{ question.pk }}"
+                id="choice-{{ choice.pk }}"
+                value="{{ choice.pk }}"
+                class="sr-only peer"
+                onchange="onChoiceChange(this)"
+              />
+              <!-- Indicateur visuel custom -->
+              <div class="w-5 h-5 rounded-{% if question.is_multiple_choice %}md{% else %}full{% endif %}
+                          border-2 border-white/20 flex-shrink-0 flex items-center justify-center
+                          peer-checked:border-blue-500 peer-checked:bg-blue-500
+                          group-hover:border-white/40 transition-all duration-200 choice-indicator">
+                <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
+                     fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="text-sm text-white/70 group-hover:text-white/90 transition-colors flex-1">
+                {{ choice.text }}
+              </span>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Bouton de soumission -->
+      <div class="mt-8">
+        <button type="submit" id="submit-btn"
+                class="btn-primary w-full py-4 rounded-2xl text-base font-semibold text-white
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+                disabled>
+          🚀 {% translate "Soumettre mes réponses" %}
+        </button>
+        <p id="submit-hint" class="text-center text-xs text-white/25 mt-2">
+          {% translate "Répondez à toutes les questions pour soumettre." %}
+        </p>
+      </div>
+    </form>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const totalQuestions = {{ quiz.questions.count }};
+const answeredQuestions = new Set();
+
+function onChoiceChange(input) {
+  const questionName = input.name;  // "question_X"
+  const questionId = questionName.split('_')[1];
+
+  // Mettre à jour les labels visuellement
+  const allLabels = document.querySelectorAll(`[name="${questionName}"]`);
+  allLabels.forEach(inp => {
+    const label = inp.closest('label');
+    if (inp.checked) {
+      label.classList.add('border-blue-500/30', 'bg-blue-500/5');
+      label.classList.remove('border-white/5');
+      inp.nextElementSibling.nextElementSibling?.classList.add('text-white');
+    } else {
+      label.classList.remove('border-blue-500/30', 'bg-blue-500/5');
+      label.classList.add('border-white/5');
+    }
+  });
+
+  // Marquer la question comme répondue
+  const isAnswered = document.querySelectorAll(`[name="${questionName}"]:checked`).length > 0;
+  if (isAnswered) answeredQuestions.add(questionId);
+  else answeredQuestions.delete(questionId);
+
+  // Mettre à jour la barre de progression
+  const progress = (answeredQuestions.size / totalQuestions) * 100;
+  document.getElementById('quiz-progress-bar').style.width = progress + '%';
+
+  // Activer/désactiver le bouton de soumission
+  const submitBtn = document.getElementById('submit-btn');
+  const submitHint = document.getElementById('submit-hint');
+  if (answeredQuestions.size === totalQuestions) {
+    submitBtn.disabled = false;
+    submitHint.style.opacity = '0';
+  } else {
+    submitBtn.disabled = true;
+    submitHint.style.opacity = '1';
+    submitHint.textContent = `${answeredQuestions.size}/${totalQuestions} {% translate "questions répondues" %}`;
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block title %}{% translate "Mon Intégration" %} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0f0f14]">
+
+  <!-- Header -->
+  <header class="border-b border-white/5 px-4 py-4 sticky top-0 z-40 backdrop-blur-xl bg-[#0f0f14]/80">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'dashboard:home' %}" class="text-white/40 hover:text-white/70 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-semibold text-white text-sm">{% translate "Mon Intégration" %}</h1>
+          <p class="text-white/30 text-xs">{% blocktranslate with days=days_elapsed %}Jour {{ days }} de votre intégration{% endblocktranslate %}</p>
+        </div>
+      </div>
+      <!-- Barre de progression globale -->
+      <div class="flex items-center gap-2">
+        <div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-700"
+               style="width: {{ progress }}%"></div>
+        </div>
+        <span class="text-xs text-white/40">{{ progress }}%</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-4 py-8">
+
+    <!-- Carte Buddy (si assigné) -->
+    {% if buddy_assignment and buddy_assignment.buddy %}
+    <div class="glass rounded-3xl p-5 mb-8 animate-fade-in border border-violet-500/10">
+      <div class="flex items-center gap-4">
+        <!-- Avatar Buddy -->
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600
+                    flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
+          {{ buddy_assignment.buddy.initials }}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-xs text-violet-400 font-medium mb-0.5 uppercase tracking-wider">
+            🤝 {% translate "Votre Buddy / Parrain" %}
+          </p>
+          <p class="font-semibold text-white text-sm">
+            {{ buddy_assignment.buddy.get_full_name|default:buddy_assignment.buddy.username }}
+          </p>
+          <p class="text-white/40 text-xs truncate">
+            {{ buddy_assignment.buddy.job_title|default:buddy_assignment.buddy.get_department_display }}
+          </p>
+        </div>
+        <div class="flex-shrink-0">
+          <a href="mailto:{{ buddy_assignment.buddy.email }}"
+             class="px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20
+                    text-violet-400 text-xs font-medium hover:bg-violet-500/20 transition-all">
+            {% translate "Contacter" %}
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- TIMELINE VERTICALE -->
+    <div class="relative">
+      <!-- Ligne verticale de la timeline -->
+      <div class="absolute left-6 top-0 bottom-0 w-px bg-white/5"></div>
+
+      <div class="space-y-6">
+        {% for item in steps_data %}
+        <div class="relative pl-14 animate-fade-in" style="animation-delay: {{ forloop.counter0 }}00ms">
+
+          <!-- Point de la timeline -->
+          <div class="absolute left-0 w-12 flex items-start justify-center pt-1">
+            {% if item.is_today %}
+              <!-- Jour actuel : pulse animé -->
+              <div class="relative">
+                <div class="w-4 h-4 rounded-full bg-blue-500 shadow-lg shadow-blue-500/50 z-10 relative"></div>
+                <div class="absolute inset-0 w-4 h-4 rounded-full bg-blue-500/30 animate-ping"></div>
+              </div>
+            {% elif item.is_unlocked %}
+              <!-- Étape débloquée terminée / en cours -->
+              {% if item.all_done %}
+                <div class="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                  <svg class="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+              {% else %}
+                <div class="w-4 h-4 rounded-full bg-blue-500/40 border-2 border-blue-500"></div>
+              {% endif %}
+            {% else %}
+              <!-- Étape future : cadenas -->
+              <div class="w-4 h-4 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+                <svg class="w-2 h-2 text-white/20" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Carte de l'étape -->
+          <div class="glass rounded-2xl p-5 {% if item.is_future %}opacity-50{% endif %}
+                      {% if item.is_today %}border border-blue-500/20 shadow-lg shadow-blue-500/10{% endif %}">
+
+            <!-- En-tête étape -->
+            <div class="flex items-start justify-between mb-3">
+              <div>
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="text-lg">{{ item.step.icon }}</span>
+                  <span class="text-xs font-medium uppercase tracking-wider
+                    {% if item.is_today %}text-blue-400
+                    {% elif item.is_unlocked %}text-green-400
+                    {% else %}text-white/20{% endif %}">
+                    {% if item.is_today %}
+                      ✦ {% translate "Aujourd'hui" %}
+                    {% elif item.is_future %}
+                      {% blocktranslate with day=item.step.day_number %}Disponible J+{{ day }}{% endblocktranslate %}
+                    {% else %}
+                      {% blocktranslate with day=item.step.day_number %}J+{{ day }}{% endblocktranslate %}
+                    {% endif %}
+                  </span>
+                </div>
+                <h3 class="font-semibold text-white text-sm">{{ item.step.title }}</h3>
+                {% if item.step.description %}
+                  <p class="text-white/40 text-xs mt-0.5">{{ item.step.description }}</p>
+                {% endif %}
+              </div>
+              <!-- Compteur tâches -->
+              {% if item.tasks_total > 0 %}
+              <span class="flex-shrink-0 text-xs px-2 py-1 rounded-lg
+                {% if item.all_done %}bg-green-500/10 text-green-400
+                {% elif item.is_unlocked %}bg-blue-500/10 text-blue-400
+                {% else %}bg-white/5 text-white/20{% endif %}">
+                {{ item.tasks_done }}/{{ item.tasks_total }}
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Tâches de l'étape -->
+            {% if item.is_unlocked and item.tasks %}
+            <div class="space-y-2 mt-3">
+              {% for task in item.tasks %}
+              <div class="flex items-start gap-3 p-3 rounded-xl
+                          {% if task.pk in completed_ids %}bg-green-500/5 border border-green-500/10
+                          {% else %}bg-white/3 border border-white/5{% endif %}"
+                   id="task-{{ task.pk }}">
+
+                <!-- Icône type de tâche -->
+                <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm
+                  {% if task.task_type == 'READ' %}bg-blue-500/10
+                  {% elif task.task_type == 'WATCH' %}bg-red-500/10
+                  {% elif task.task_type == 'MEET' %}bg-violet-500/10
+                  {% else %}bg-orange-500/10{% endif %}">
+                  {% if task.task_type == 'READ' %}📖
+                  {% elif task.task_type == 'WATCH' %}🎥
+                  {% elif task.task_type == 'MEET' %}🤝
+                  {% else %}⚡{% endif %}
+                </div>
+
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium {% if task.pk in completed_ids %}text-white/40 line-through{% else %}text-white/80{% endif %}">
+                    {{ task.title }}
+                  </p>
+                  <p class="text-xs text-white/30 mt-0.5">{{ task.content|truncatechars:100 }}</p>
+
+                  <!-- Profile Card pour les tâches MEET -->
+                  {% if task.task_type == 'MEET' and task.meet_colleague %}
+                  <div class="mt-2 flex items-center gap-2 p-2 bg-violet-500/5 border border-violet-500/10 rounded-xl">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600
+                                flex items-center justify-center text-xs font-bold text-white">
+                      {{ task.meet_colleague.initials }}
+                    </div>
+                    <div>
+                      <p class="text-xs font-medium text-white/70">
+                        {{ task.meet_colleague.get_full_name|default:task.meet_colleague.username }}
+                      </p>
+                      <p class="text-xs text-white/30">
+                        {{ task.meet_colleague.job_title|default:task.meet_colleague.get_department_display }}
+                      </p>
+                    </div>
+                    <a href="mailto:{{ task.meet_colleague.email }}"
+                       class="ml-auto text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                      ✉
+                    </a>
+                  </div>
+                  {% endif %}
+                </div>
+
+                <!-- Bouton de complétion -->
+                {% if not task.pk in completed_ids %}
+                <button onclick="completeTask({{ task.pk }})"
+                        class="flex-shrink-0 w-6 h-6 rounded-lg border border-white/10
+                               hover:border-green-500/50 hover:bg-green-500/10
+                               flex items-center justify-center transition-all duration-200
+                               text-white/20 hover:text-green-400">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </button>
+                {% else %}
+                <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/10 border border-green-500/20
+                            flex items-center justify-center">
+                  <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                  </svg>
+                </div>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+            {% elif item.is_future %}
+            <!-- Message de verrouillage -->
+            <div class="flex items-center gap-2 mt-2 text-white/20 text-xs">
+              <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
+              </svg>
+              {% blocktranslate with day=item.step.day_number %}Disponible dans {{ day }} jour(s){% endblocktranslate %}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-16 text-white/30">
+          <p class="text-4xl mb-3">🗺️</p>
+          <p>{% translate "Aucune étape d'intégration configurée." %}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+
+async function completeTask(taskId) {
+  const btn = document.querySelector(`#task-${taskId} button`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>';
+  }
+
+  try {
+    const resp = await fetch(`{% url 'learning:complete_onboarding_task' 0 %}`.replace('/0/', `/${taskId}/`), {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+    });
+    const data = await resp.json();
+
+    if (data.success) {
+      // Mettre à jour la barre de progression
+      const bar  = document.querySelector('.bg-gradient-to-r.from-blue-500');
+      const pct  = document.querySelector('.text-white\\/40.text-xs');
+      if (bar) bar.style.width = data.progress + '%';
+      if (pct) pct.textContent = data.progress + '%';
+
+      // Animation de complétion
+      const taskEl = document.getElementById(`task-${taskId}`);
+      if (taskEl) {
+        taskEl.classList.add('bg-green-500/5', 'border-green-500/10');
+        taskEl.classList.remove('bg-white/3', 'border-white/5');
+        if (btn) {
+          btn.outerHTML = `
+            <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/10 border border-green-500/20
+                        flex items-center justify-center">
+              <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+              </svg>
+            </div>`;
+        }
+        // Barrer le titre
+        const title = taskEl.querySelector('p.text-sm.font-medium');
+        if (title) title.classList.add('line-through', 'text-white/40');
+      }
+    }
+  } catch (err) {
+    console.error('Erreur complétion tâche:', err);
+    if (btn) btn.disabled = false;
+  }
+}
+</script>
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load i18n humanize %}
+
+{% block title %}{% translate "Manager Dashboard" %} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0f0f14]">
+
+  <header class="border-b border-white/5 px-4 py-4 sticky top-0 z-40 backdrop-blur-xl bg-[#0f0f14]/80">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'learning:lms_dashboard' %}" class="text-white/40 hover:text-white/70 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-semibold text-white">{% translate "Manager Dashboard" %}</h1>
+          <p class="text-white/30 text-xs">
+            {% if manager_dept %}{{ manager_dept }}{% else %}{% translate "Tous départements" %}{% endif %}
+            · {{ total_employees }} {% translate "membres" %}
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- KPI Cards -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8 animate-fade-in">
+      <div class="glass rounded-2xl p-5">
+        <p class="text-2xl font-bold text-white mb-0.5">{{ total_employees }}</p>
+        <p class="text-xs text-white/40">{% translate "Membres d'équipe" %}</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-2xl font-bold text-blue-400 mb-0.5">{{ paths|length }}</p>
+        <p class="text-xs text-white/40">{% translate "Parcours actifs" %}</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-2xl font-bold text-violet-400 mb-0.5">
+          {% for p in paths %}{{ p.total_enrollments }}{% if not forloop.last %}+{% endif %}{% endfor %}
+        </p>
+        <p class="text-xs text-white/40">{% translate "Inscriptions" %}</p>
+      </div>
+      <div class="glass rounded-2xl p-5">
+        <p class="text-2xl font-bold text-green-400 mb-0.5">
+          {% for p in paths %}{{ p.completed_certs }}{% if not forloop.last %}+{% endif %}{% endfor %}
+        </p>
+        <p class="text-xs text-white/40">{% translate "Certificats délivrés" %}</p>
+      </div>
+    </div>
+
+    <!-- Parcours — Stats -->
+    {% if paths %}
+    <section class="mb-8">
+      <h2 class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+        {% translate "Parcours de formation" %}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {% for path in paths %}
+        <div class="glass rounded-2xl p-5 animate-fade-in">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h3 class="font-semibold text-white text-sm">{{ path.title }}</h3>
+              <p class="text-xs text-white/30 mt-0.5">{{ path.target_department }}</p>
+            </div>
+            <span class="text-xs px-2 py-1 bg-blue-500/10 text-blue-400 rounded-lg border border-blue-500/20">
+              {{ path.total_enrollments }} {% translate "inscrits" %}
+            </span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-white/40">
+            <span>🏆 {{ path.completed_certs }} {% translate "certificats" %}</span>
+            {% if path.total_enrollments > 0 %}
+            <span>{{ path.completed_certs|floatformat:0 }}/{{ path.total_enrollments }} {% translate "complétés" %}</span>
+            {% endif %}
+          </div>
+          <!-- Barre de taux de completion -->
+          {% if path.total_enrollments > 0 %}
+          <div class="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
+            {% widthratio path.completed_certs path.total_enrollments 100 as completion_pct %}
+            <div class="h-full bg-gradient-to-r from-green-500 to-teal-500 rounded-full"
+                 style="width: {{ completion_pct }}%"></div>
+          </div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    <!-- Tableau équipe -->
+    <section>
+      <h2 class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+        {% translate "Progression de l'équipe" %}
+      </h2>
+
+      <div class="glass rounded-3xl overflow-hidden">
+        <!-- En-tête tableau -->
+        <div class="grid grid-cols-12 gap-2 px-5 py-3 border-b border-white/5 text-xs text-white/30 uppercase tracking-wider">
+          <div class="col-span-4">{% translate "Employé" %}</div>
+          <div class="col-span-3">{% translate "Leçons complétées" %}</div>
+          <div class="col-span-2 text-center">{% translate "Quiz réussis" %}</div>
+          <div class="col-span-2 text-center">{% translate "Certificats" %}</div>
+          <div class="col-span-1 text-center">{% translate "Statut" %}</div>
+        </div>
+
+        <!-- Lignes employés -->
+        {% for emp in employees %}
+        <div class="grid grid-cols-12 gap-2 items-center px-5 py-4
+                    border-b border-white/3 last:border-0
+                    hover:bg-white/2 transition-colors animate-fade-in"
+             style="animation-delay: {{ forloop.counter0 }}0ms">
+
+          <!-- Identité -->
+          <div class="col-span-4 flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500/30 to-violet-500/30
+                        flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
+              {{ emp.initials }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-sm font-medium text-white/80 truncate">
+                {{ emp.get_full_name|default:emp.username }}
+              </p>
+              <p class="text-xs text-white/30 truncate">{{ emp.job_title|default:emp.get_department_display }}</p>
+            </div>
+          </div>
+
+          <!-- Leçons -->
+          <div class="col-span-3">
+            <div class="flex items-center gap-2">
+              <!-- Jauge de progression -->
+              {% if emp.lessons_done > 0 %}
+              <div class="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden max-w-[80px]">
+                <div class="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
+                     style="width: min(100%, {{ emp.lessons_done }}0%)"></div>
+              </div>
+              {% else %}
+              <div class="flex-1 h-1.5 bg-white/5 rounded-full max-w-[80px]"></div>
+              {% endif %}
+              <span class="text-xs text-white/50 tabular-nums">{{ emp.lessons_done }}</span>
+            </div>
+          </div>
+
+          <!-- Quiz -->
+          <div class="col-span-2 text-center">
+            <span class="text-sm font-medium {% if emp.quiz_passed > 0 %}text-blue-400{% else %}text-white/20{% endif %}">
+              {{ emp.quiz_passed }}
+            </span>
+          </div>
+
+          <!-- Certificats -->
+          <div class="col-span-2 text-center">
+            {% if emp.certs_earned > 0 %}
+            <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5
+                         bg-green-500/10 border border-green-500/20 text-green-400 rounded-full">
+              🏆 {{ emp.certs_earned }}
+            </span>
+            {% else %}
+            <span class="text-white/20 text-xs">—</span>
+            {% endif %}
+          </div>
+
+          <!-- Statut onboarding -->
+          <div class="col-span-1 flex justify-center">
+            {% if emp.lessons_done == 0 %}
+              <span class="w-2 h-2 rounded-full bg-white/15" title="{% translate 'Non démarré' %}"></span>
+            {% elif emp.certs_earned > 0 %}
+              <span class="w-2 h-2 rounded-full bg-green-500" title="{% translate 'Certifié' %}"></span>
+            {% else %}
+              <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse" title="{% translate 'En cours' %}"></span>
+            {% endif %}
+          </div>
+
+        </div>
+        {% empty %}
+        <div class="text-center py-12 text-white/30">
+          <p>{% translate "Aucun membre d'équipe trouvé." %}</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Légende -->
+      <div class="flex items-center gap-4 mt-3 px-2 text-xs text-white/25">
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          {% translate "Certifié" %}
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+          {% translate "En cours" %}
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-white/15"></span>
+          {% translate "Non démarré" %}
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+{% endblock %}

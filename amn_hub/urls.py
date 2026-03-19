@@ -22,6 +22,7 @@ urlpatterns += i18n_patterns(
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls', namespace='users')),
     path('dashboard/', include('users.dashboard_urls', namespace='dashboard')),
+    path('learning/', include('learning.urls', namespace='learning')),
     prefix_default_language=False,
 )
 

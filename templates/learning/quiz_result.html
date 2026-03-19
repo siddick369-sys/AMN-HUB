@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Résultat du quiz" %} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#0f0f14] flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md animate-fade-in">
+
+    <!-- Résultat visuel -->
+    <div class="glass rounded-3xl p-8 text-center mb-6
+                {% if passed %}border border-green-500/20{% else %}border border-red-500/10{% endif %}">
+
+      <!-- Emoji résultat -->
+      <div class="text-6xl mb-5 animate-slide-up">
+        {% if passed %}🏆{% elif score >= 50 %}😅{% else %}💪{% endif %}
+      </div>
+
+      <h1 class="text-2xl font-bold text-white mb-1">
+        {% if passed %}{% translate "Félicitations !" %}{% else %}{% translate "Continuez vos efforts !" %}{% endif %}
+      </h1>
+      <p class="text-white/40 text-sm mb-6">{{ quiz.title }}</p>
+
+      <!-- Score circulaire (simulé avec gradient) -->
+      <div class="relative inline-flex items-center justify-center w-32 h-32 mb-6">
+        <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="54"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.05)"
+                  stroke-width="8"/>
+          <circle cx="60" cy="60" r="54"
+                  fill="none"
+                  stroke="{% if passed %}#22c55e{% else %}#ef4444{% endif %}"
+                  stroke-width="8"
+                  stroke-linecap="round"
+                  stroke-dasharray="{{ score|floatformat:0 }} 100"
+                  stroke-dasharray="339.3"
+                  style="stroke-dasharray: calc({{ score }} * 3.393) 339.3; transition: stroke-dasharray 1s ease;"/>
+        </svg>
+        <div class="absolute text-center">
+          <p class="text-3xl font-bold {% if passed %}text-green-400{% else %}text-red-400{% endif %}">
+            {{ score|floatformat:0 }}%
+          </p>
+          <p class="text-xs text-white/30">{% translate "score" %}</p>
+        </div>
+      </div>
+
+      <!-- Détails -->
+      <div class="flex justify-center gap-6 mb-6">
+        <div class="text-center">
+          <p class="text-xl font-bold text-green-400">{{ correct }}</p>
+          <p class="text-xs text-white/30">{% translate "correctes" %}</p>
+        </div>
+        <div class="w-px bg-white/10"></div>
+        <div class="text-center">
+          <p class="text-xl font-bold text-white/60">{{ total }}</p>
+          <p class="text-xs text-white/30">{% translate "questions" %}</p>
+        </div>
+        <div class="w-px bg-white/10"></div>
+        <div class="text-center">
+          <p class="text-xl font-bold text-blue-400">{{ threshold }}%</p>
+          <p class="text-xs text-white/30">{% translate "requis" %}</p>
+        </div>
+      </div>
+
+      <!-- Message contextuel -->
+      {% if passed %}
+      <div class="bg-green-500/10 border border-green-500/20 rounded-2xl p-3 mb-5 text-sm text-green-300">
+        🎉 {% translate "Quiz réussi ! Votre certificat est en cours de génération." %}
+      </div>
+      {% else %}
+      <div class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-3 mb-5 text-sm text-orange-300">
+        📖 {% blocktranslate with threshold=threshold %}Obtenez au moins {{ threshold }}% pour réussir. Révisez et réessayez !{% endblocktranslate %}
+      </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="space-y-3">
+        {% if not passed %}
+        <a href="{% url 'learning:quiz' quiz.pk %}"
+           class="block btn-primary py-3 rounded-2xl text-sm font-semibold text-white text-center">
+          🔄 {% translate "Réessayer" %}
+        </a>
+        {% endif %}
+        <a href="{% url 'learning:course_detail' quiz.course.pk %}"
+           class="block py-3 rounded-2xl text-sm font-medium text-white/50
+                  hover:text-white/80 hover:bg-white/5 transition-all glass text-center">
+          {% translate "Retour au cours" %}
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
