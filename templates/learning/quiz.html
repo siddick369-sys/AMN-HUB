@@ -3,123 +3,223 @@
 
 {% block title %}{{ quiz.title }} — AMN Employee Hub{% endblock %}
 
+{% block extra_head %}
+<style>
+  /* Duolingo-style progress dots */
+  .progress-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #e2e8f0; transition: all 0.3s ease;
+  }
+  .progress-dot.answered { background: #10b981; transform: scale(1.15); }
+  .progress-dot.active   { background: #1e3a5f; transform: scale(1.2); box-shadow: 0 0 0 3px rgba(30,58,95,0.15); }
+
+  /* Answer buttons Duolingo style */
+  .answer-btn {
+    width: 100%;
+    padding: 16px 20px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    background: #fff;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 500;
+    color: #1e293b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 0 #e2e8f0;
+  }
+  .answer-btn:hover:not(:disabled) {
+    border-color: #1e3a5f;
+    background: #f0f5fb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 0 #b8d0eb;
+  }
+  .answer-btn.selected {
+    border-color: #1e3a5f;
+    background: #f0f5fb;
+    box-shadow: 0 4px 0 #84aed6;
+  }
+  .answer-btn .indicator {
+    width: 24px; height: 24px; border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .answer-btn.selected .indicator {
+    border-color: #1e3a5f;
+    background: #1e3a5f;
+  }
+  .answer-btn.selected .indicator svg { opacity: 1; }
+  .answer-btn .indicator svg { opacity: 0; transition: opacity 0.15s; }
+
+  /* XP pulse */
+  @keyframes xp-pop { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+  .xp-pop { animation: xp-pop 0.4s ease; }
+
+  /* Slide animation */
+  @keyframes slideIn {
+    from { opacity:0; transform: translateX(30px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+  .slide-in { animation: slideIn 0.3s ease forwards; }
+
+  /* Heart pulse */
+  @keyframes heart-beat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+  .heart { display:inline-block; transition: all 0.3s; }
+  .heart.lost { filter:grayscale(1); opacity:0.35; }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px;
+    top: -10px; pointer-events: none; z-index: 9999;
+    animation: confetti-fall 3s ease-out forwards;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+{% endblock %}
+
 {% block content %}
+{% load i18n %}
 <div class="min-h-screen bg-slate-50 flex flex-col">
 
-  <!-- Header quiz -->
-  <header class="border-b border-slate-100 px-4 py-4 flex-shrink-0">
-    <div class="max-w-2xl mx-auto flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <a href="{% url 'learning:course_detail' quiz.course.pk %}"
-           class="text-slate-400 hover:text-navy-600 transition-colors">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-          </svg>
-        </a>
-        <div>
-          <h1 class="font-semibold text-navy-700 text-sm">{{ quiz.title }}</h1>
-          <p class="text-slate-400 text-xs">{{ quiz.course.title }}</p>
-        </div>
+  <!-- ── HEADER QUIZ STYLE DUOLINGO ─────────────────────────────────────── -->
+  <header class="bg-white border-b border-slate-200 px-4 py-3 flex-shrink-0 sticky top-0 z-40">
+    <div class="max-w-xl mx-auto flex items-center gap-4">
+
+      <!-- Fermer -->
+      <a href="{% url 'learning:course_detail' quiz.course.pk %}"
+         class="text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </a>
+
+      <!-- Progress dots -->
+      <div class="flex items-center gap-1.5 flex-1 justify-center" id="progress-dots">
+        {% for question in quiz.questions.all %}
+        <div class="progress-dot {% if forloop.first %}active{% endif %}"
+             id="dot-{{ forloop.counter }}"></div>
+        {% endfor %}
       </div>
-      <div class="flex items-center gap-2 text-xs text-slate-400">
-        <span>{{ attempts_left }} {% translate "tentative(s) restante(s)" %}</span>
-        <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
-        <span>{% translate "Requis :" %} {{ quiz.passing_score_percentage }}%</span>
+
+      <!-- XP + Cœurs -->
+      <div class="flex items-center gap-3 flex-shrink-0">
+        <div class="flex items-center gap-1 text-sm font-bold text-amber-500" id="xp-display">
+          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+          <span id="xp-count">0</span> XP
+        </div>
+        <div class="flex gap-0.5" id="hearts-display">
+          <span class="heart text-lg" id="heart-1">❤️</span>
+          <span class="heart text-lg" id="heart-2">❤️</span>
+          <span class="heart text-lg" id="heart-3">❤️</span>
+        </div>
       </div>
     </div>
   </header>
 
-  <!-- Barre de progression quiz -->
-  <div id="quiz-progress-bar" class="h-0.5 bg-gradient-to-r from-blue-500 to-violet-500 transition-all duration-500"
-       style="width: 0%"></div>
-
-  <!-- Corps du quiz -->
-  <main class="flex-1 max-w-2xl mx-auto w-full px-4 py-8">
+  <!-- ── CORPS DU QUIZ ──────────────────────────────────────────────────── -->
+  <main class="flex-1 max-w-xl mx-auto w-full px-4 py-8">
 
     {% if best_attempt and best_attempt.passed %}
     <!-- Déjà réussi -->
-    <div class="card rounded-2xl p-8 text-center border border-emerald-200">
-      <p class="text-5xl mb-4">🏆</p>
-      <h2 class="text-xl font-bold text-white mb-2">{% translate "Quiz déjà réussi !" %}</h2>
-      <p class="text-slate-400">{% translate "Vous avez obtenu" %} {{ best_attempt.score_percentage|floatformat:0 }}%</p>
+    <div class="card rounded-2xl p-10 text-center">
+      <div class="text-7xl mb-5">🏆</div>
+      <h2 class="text-2xl font-bold text-navy-700 mb-2">{% translate "Quiz déjà réussi !" %}</h2>
+      <p class="text-slate-500 mb-2">{% translate "Score obtenu :" %} <strong class="text-emerald-600">{{ best_attempt.score_percentage|floatformat:0 }}%</strong></p>
       <a href="{% url 'learning:course_detail' quiz.course.pk %}"
-         class="inline-block mt-6 btn-primary px-6 py-3 rounded-2xl text-sm font-semibold text-navy-700">
+         class="inline-block mt-6 btn-primary px-8 py-3 rounded-xl text-sm font-bold text-white">
         {% translate "Retour au cours" %}
       </a>
     </div>
-    {% else %}
 
+    {% elif attempts_left <= 0 %}
+    <!-- Plus de tentatives -->
+    <div class="card rounded-2xl p-10 text-center">
+      <div class="text-7xl mb-5">😞</div>
+      <h2 class="text-2xl font-bold text-navy-700 mb-2">{% translate "Plus de tentatives" %}</h2>
+      <p class="text-slate-500">{% translate "Vous avez utilisé toutes vos tentatives. Contactez votre manager." %}</p>
+      <a href="{% url 'learning:course_detail' quiz.course.pk %}"
+         class="inline-block mt-6 btn-primary px-8 py-3 rounded-xl text-sm font-bold">
+        {% translate "Retour au cours" %}
+      </a>
+    </div>
+
+    {% else %}
+    <!-- ── QUESTIONS (une à la fois, Duolingo-style) ──────────────────── -->
     <form method="post" id="quiz-form" novalidate>
       {% csrf_token %}
-      <div class="space-y-6" id="questions-container">
-        {% for question in quiz.questions.all %}
-        <div class="quiz-question card rounded-2xl p-6 animate-fade-in"
-             id="question-{{ forloop.counter }}"
-             data-question="{{ forloop.counter }}"
-             style="animation-delay: {{ forloop.counter0 }}00ms">
 
-          <!-- Numéro + Énoncé -->
-          <div class="flex items-start gap-3 mb-5">
-            <span class="flex-shrink-0 w-7 h-7 rounded-xl bg-navy-50 border border-navy-200
-                         flex items-center justify-center text-xs font-bold text-navy-600">
-              {{ forloop.counter }}
-            </span>
-            <p class="text-navy-700 font-medium leading-relaxed">{{ question.text }}</p>
-          </div>
+      {% for question in quiz.questions.all %}
+      <div class="question-slide {% if not forloop.first %}hidden{% endif %} slide-in"
+           id="slide-{{ forloop.counter }}"
+           data-index="{{ forloop.counter }}"
+           data-total="{{ quiz.questions.count }}">
 
+        <!-- Numéro de question -->
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3 text-center">
+          {% blocktranslate with n=forloop.counter total=quiz.questions.count %}
+            Question {{ n }} sur {{ total }}
+          {% endblocktranslate %}
+        </p>
+
+        <!-- Énoncé -->
+        <div class="card rounded-2xl p-6 mb-6">
+          <p class="text-lg font-bold text-navy-700 leading-relaxed text-center">
+            {{ question.text }}
+          </p>
           {% if question.is_multiple_choice %}
-          <p class="text-xs text-white/30 mb-3">
-            <span class="px-2 py-0.5 bg-navy-50 rounded-full border border-navy-200 text-navy-600">
-              {% translate "Plusieurs réponses possibles" %}
-            </span>
+          <p class="text-xs text-center text-slate-400 mt-3 bg-slate-50 rounded-lg py-1.5 px-3">
+            {% translate "Plusieurs réponses possibles" %}
           </p>
           {% endif %}
+        </div>
 
-          <!-- Choix de réponses — Boutons larges -->
-          <div class="space-y-2">
-            {% for choice in question.choices.all %}
-            <label class="flex items-center gap-3 p-4 rounded-2xl cursor-pointer
-                          border border-slate-100 hover:border-white/15 hover:bg-slate-50
-                          transition-all duration-200 group choice-label"
-                   for="choice-{{ choice.pk }}">
-              <input
-                type="{% if question.is_multiple_choice %}checkbox{% else %}radio{% endif %}"
-                name="question_{{ question.pk }}"
-                id="choice-{{ choice.pk }}"
-                value="{{ choice.pk }}"
-                class="sr-only peer"
-                onchange="onChoiceChange(this)"
-              />
-              <!-- Indicateur visuel custom -->
-              <div class="w-5 h-5 rounded-{% if question.is_multiple_choice %}md{% else %}full{% endif %}
-                          border-2 border-white/20 flex-shrink-0 flex items-center justify-center
-                          peer-checked:border-blue-500 peer-checked:bg-blue-500
-                          group-hover:border-white/40 transition-all duration-200 choice-indicator">
-                <svg class="w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity"
-                     fill="currentColor" viewBox="0 0 20 20">
+        <!-- Choix — grands boutons Duolingo -->
+        <div class="space-y-3" role="group" aria-label="{% translate 'Choix de réponse' %}">
+          {% for choice in question.choices.all %}
+          <div>
+            <input
+              type="{% if question.is_multiple_choice %}checkbox{% else %}radio{% endif %}"
+              name="question_{{ question.pk }}"
+              id="choice-{{ choice.pk }}"
+              value="{{ choice.pk }}"
+              class="sr-only"
+              onchange="onChoiceSelect(this, {{ forloop.parentloop.counter }})"
+            />
+            <label for="choice-{{ choice.pk }}" class="answer-btn" id="label-{{ choice.pk }}">
+              <div class="indicator">
+                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                 </svg>
               </div>
-              <span class="text-sm text-white/70 group-hover:text-white/90 transition-colors flex-1">
-                {{ choice.text }}
-              </span>
+              <span>{{ choice.text }}</span>
             </label>
-            {% endfor %}
           </div>
+          {% endfor %}
         </div>
-        {% endfor %}
-      </div>
 
-      <!-- Bouton de soumission -->
-      <div class="mt-8">
-        <button type="submit" id="submit-btn"
-                class="btn-primary w-full py-4 rounded-2xl text-base font-semibold text-white
+      </div>
+      {% endfor %}
+
+      <!-- Bouton navigation -->
+      <div class="mt-8 space-y-3">
+        <button type="button" id="next-btn"
+                class="btn-emerald w-full py-4 rounded-xl text-base font-bold text-white
                        disabled:opacity-30 disabled:cursor-not-allowed"
-                disabled>
-          🚀 {% translate "Soumettre mes réponses" %}
+                disabled
+                onclick="nextQuestion()">
+          <span id="next-label">{% translate "Continuer" %}</span>
         </button>
-        <p id="submit-hint" class="text-center text-xs text-white/25 mt-2">
-          {% translate "Répondez à toutes les questions pour soumettre." %}
+        <p id="answer-hint" class="text-center text-xs text-slate-400">
+          {% translate "Sélectionnez une réponse pour continuer" %}
         </p>
       </div>
     </form>
@@ -131,47 +231,105 @@
 
 {% block extra_js %}
 <script>
-const totalQuestions = {{ quiz.questions.count }};
-const answeredQuestions = new Set();
+(function () {
+  const totalQuestions = {{ quiz.questions.count }};
+  const answeredQuestions = {};   // { questionIndex: true }
+  let currentSlide = 1;
+  let xp = 0;
+  let heartsLeft = 3;
 
-function onChoiceChange(input) {
-  const questionName = input.name;  // "question_X"
-  const questionId = questionName.split('_')[1];
+  const nextBtn   = document.getElementById('next-btn');
+  const nextLabel = document.getElementById('next-label');
+  const hint      = document.getElementById('answer-hint');
+  const xpCount   = document.getElementById('xp-count');
+  const xpDisplay = document.getElementById('xp-display');
 
-  // Mettre à jour les labels visuellement
-  const allLabels = document.querySelectorAll(`[name="${questionName}"]`);
-  allLabels.forEach(inp => {
-    const label = inp.closest('label');
-    if (inp.checked) {
-      label.classList.add('border-blue-500/30', 'bg-blue-500/5');
-      label.classList.remove('border-white/5');
-      inp.nextElementSibling.nextElementSibling?.classList.add('text-white');
-    } else {
-      label.classList.remove('border-blue-500/30', 'bg-blue-500/5');
-      label.classList.add('border-white/5');
+  function onChoiceSelect(input, questionIndex) {
+    const questionName = input.name;
+
+    // Mise à jour visuelle des labels
+    document.querySelectorAll(`[name="${questionName}"]`).forEach(inp => {
+      const label = document.getElementById(`label-${inp.value}`);
+      if (label) {
+        if (inp.checked) label.classList.add('selected');
+        else label.classList.remove('selected');
+      }
+    });
+
+    const isAnswered = document.querySelectorAll(`[name="${questionName}"]:checked`).length > 0;
+    if (isAnswered) answeredQuestions[questionIndex] = true;
+    else delete answeredQuestions[questionIndex];
+
+    const allAnswered = Object.keys(answeredQuestions).length === totalQuestions;
+    const currentAnswered = answeredQuestions[currentSlide];
+
+    nextBtn.disabled = !currentAnswered;
+    if (currentAnswered) hint.style.opacity = '0';
+    else { hint.style.opacity = '1'; hint.textContent = '{% translate "Sélectionnez une réponse pour continuer" %}'; }
+
+    if (currentSlide === totalQuestions) {
+      nextLabel.textContent = allAnswered
+        ? '🚀 {% translate "Soumettre" %}'
+        : '{% translate "Continuer" %}';
     }
-  });
 
-  // Marquer la question comme répondue
-  const isAnswered = document.querySelectorAll(`[name="${questionName}"]:checked`).length > 0;
-  if (isAnswered) answeredQuestions.add(questionId);
-  else answeredQuestions.delete(questionId);
-
-  // Mettre à jour la barre de progression
-  const progress = (answeredQuestions.size / totalQuestions) * 100;
-  document.getElementById('quiz-progress-bar').style.width = progress + '%';
-
-  // Activer/désactiver le bouton de soumission
-  const submitBtn = document.getElementById('submit-btn');
-  const submitHint = document.getElementById('submit-hint');
-  if (answeredQuestions.size === totalQuestions) {
-    submitBtn.disabled = false;
-    submitHint.style.opacity = '0';
-  } else {
-    submitBtn.disabled = true;
-    submitHint.style.opacity = '1';
-    submitHint.textContent = `${answeredQuestions.size}/${totalQuestions} {% translate "questions répondues" %}`;
+    // Update progress dot
+    const dot = document.getElementById(`dot-${currentSlide}`);
+    if (dot && currentAnswered) dot.classList.add('answered');
+    else if (dot) dot.classList.remove('answered');
   }
-}
+
+  window.onChoiceSelect = onChoiceSelect;
+
+  window.nextQuestion = function () {
+    if (!answeredQuestions[currentSlide]) return;
+
+    // Gagner XP (+10 par question)
+    xp += 10;
+    xpCount.textContent = xp;
+    xpDisplay.classList.remove('xp-pop');
+    void xpDisplay.offsetWidth; // force reflow
+    xpDisplay.classList.add('xp-pop');
+
+    if (currentSlide < totalQuestions) {
+      // Masquer slide actuel
+      document.getElementById(`slide-${currentSlide}`).classList.add('hidden');
+
+      // Marquer dot répondu
+      const prevDot = document.getElementById(`dot-${currentSlide}`);
+      if (prevDot) { prevDot.classList.add('answered'); prevDot.classList.remove('active'); }
+
+      currentSlide++;
+
+      // Afficher slide suivant
+      const nextSlide = document.getElementById(`slide-${currentSlide}`);
+      nextSlide.classList.remove('hidden');
+      nextSlide.classList.remove('slide-in');
+      void nextSlide.offsetWidth;
+      nextSlide.classList.add('slide-in');
+
+      // Activer dot actif
+      const nextDot = document.getElementById(`dot-${currentSlide}`);
+      if (nextDot) nextDot.classList.add('active');
+
+      // Réinitialiser bouton
+      nextBtn.disabled = !answeredQuestions[currentSlide];
+      hint.style.opacity = answeredQuestions[currentSlide] ? '0' : '1';
+
+      const allAnswered = Object.keys(answeredQuestions).length === totalQuestions;
+      nextLabel.textContent = (currentSlide === totalQuestions && allAnswered)
+        ? '🚀 {% translate "Soumettre" %}'
+        : '{% translate "Continuer" %}';
+
+    } else {
+      // Soumettre le formulaire
+      document.getElementById('quiz-form').submit();
+    }
+  };
+
+  // Exposer pour onchange
+  window.onChoiceSelect = onChoiceSelect;
+
+})();
 </script>
 {% endblock %}

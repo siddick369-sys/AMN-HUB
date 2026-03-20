@@ -36,12 +36,12 @@
         <a href="{% url 'learning:lesson_detail' item.lesson.pk %}"
            class="flex items-center gap-4 p-4 card rounded-xl
                   hover:bg-slate-50 transition-all duration-200 group
-                  {% if item.is_complete %}border border-green-500/10{% else %}border border-transparent{% endif %}">
+                  {% if item.is_complete %}border border-emerald-200{% else %}border border-transparent{% endif %}">
 
           <!-- Indicateur -->
           <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center
             {% if item.is_complete %}bg-emerald-50 border border-emerald-200
-            {% else %}bg-slate-50 border border-white/10{% endif %}">
+            {% else %}bg-slate-50 border border-slate-200{% endif %}">
             {% if item.is_complete %}
               <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
@@ -58,23 +58,23 @@
           </div>
 
           <div class="flex-1 min-w-0">
-            <p class="text-sm font-medium {% if item.is_complete %}text-white/50{% else %}text-white/80{% endif %}
+            <p class="text-sm font-medium {% if item.is_complete %}text-slate-500{% else %}text-slate-700{% endif %}
                        group-hover:text-white transition-colors truncate">
               {{ item.lesson.title }}
             </p>
             <div class="flex items-center gap-2 mt-0.5">
-              <span class="text-xs text-white/25">{{ item.lesson.get_content_type_display }}</span>
+              <span class="text-xs text-slate-300">{{ item.lesson.get_content_type_display }}</span>
               <span class="text-slate-200">·</span>
-              <span class="text-xs text-white/25">{{ item.lesson.duration_minutes }} min</span>
+              <span class="text-xs text-slate-300">{{ item.lesson.duration_minutes }} min</span>
               {% if not item.lesson.is_low_data_friendly %}
-              <span class="text-xs px-1.5 py-0.5 bg-orange-500/10 text-orange-400/70 rounded">
+              <span class="text-xs px-1.5 py-0.5 bg-orange-50 text-orange-400/70 rounded">
                 HD
               </span>
               {% endif %}
             </div>
           </div>
 
-          <svg class="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors flex-shrink-0"
+          <svg class="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors flex-shrink-0"
                fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
           </svg>
@@ -84,7 +84,7 @@
         <div class="flex items-center gap-4 p-4 card rounded-xl opacity-30 border border-orange-500/10">
           <div class="w-9 h-9 rounded-xl flex-shrink-0 bg-orange-500/5 flex items-center justify-center">🎥</div>
           <div class="flex-1">
-            <p class="text-sm text-white/40 line-through">{{ item.lesson.title }}</p>
+            <p class="text-sm text-slate-400 line-through">{{ item.lesson.title }}</p>
             <p class="text-xs text-orange-400/60 mt-0.5">{% translate "Masqué en mode Low-Data" %}</p>
           </div>
         </div>

@@ -23,7 +23,7 @@
       <!-- Barre de progression globale -->
       <div class="flex items-center gap-2">
         <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-700"
+          <div class="h-full bg-gradient-to-r from-navy-400 to-emerald-500 rounded-full transition-all duration-700"
                style="width: {{ progress }}%"></div>
         </div>
         <span class="text-xs text-slate-400">{{ progress }}%</span>
@@ -104,7 +104,7 @@
 
           <!-- Carte de l'étape -->
           <div class="card rounded-xl p-5 {% if item.is_future %}opacity-50{% endif %}
-                      {% if item.is_today %}border border-navy-200 shadow-lg shadow-blue-500/10{% endif %}">
+                      {% if item.is_today %}border border-navy-200 shadow-lg shadow-navy-100{% endif %}">
 
             <!-- En-tête étape -->
             <div class="flex items-start justify-between mb-3">
@@ -112,9 +112,9 @@
                 <div class="flex items-center gap-2 mb-1">
                   <span class="text-lg">{{ item.step.icon }}</span>
                   <span class="text-xs font-medium uppercase tracking-wider
-                    {% if item.is_today %}text-blue-400
+                    {% if item.is_today %}text-navy-600
                     {% elif item.is_unlocked %}text-emerald-600
-                    {% else %}text-white/20{% endif %}">
+                    {% else %}text-slate-300{% endif %}">
                     {% if item.is_today %}
                       ✦ {% translate "Aujourd'hui" %}
                     {% elif item.is_future %}
@@ -133,8 +133,8 @@
               {% if item.tasks_total > 0 %}
               <span class="flex-shrink-0 text-xs px-2 py-1 rounded-lg
                 {% if item.all_done %}bg-emerald-50 text-emerald-600
-                {% elif item.is_unlocked %}bg-navy-50 text-blue-400
-                {% else %}bg-slate-50 text-white/20{% endif %}">
+                {% elif item.is_unlocked %}bg-navy-50 text-navy-600
+                {% else %}bg-slate-50 text-slate-300{% endif %}">
                 {{ item.tasks_done }}/{{ item.tasks_total }}
               </span>
               {% endif %}
@@ -145,16 +145,16 @@
             <div class="space-y-2 mt-3">
               {% for task in item.tasks %}
               <div class="flex items-start gap-3 p-3 rounded-xl
-                          {% if task.pk in completed_ids %}bg-green-500/5 border border-green-500/10
-                          {% else %}bg-white/3 border border-white/5{% endif %}"
+                          {% if task.pk in completed_ids %}bg-emerald-50 border border-emerald-200
+                          {% else %}bg-slate-50 border border-slate-100{% endif %}"
                    id="task-{{ task.pk }}">
 
                 <!-- Icône type de tâche -->
                 <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm
                   {% if task.task_type == 'READ' %}bg-navy-50
-                  {% elif task.task_type == 'WATCH' %}bg-red-500/10
+                  {% elif task.task_type == 'WATCH' %}bg-red-50
                   {% elif task.task_type == 'MEET' %}bg-navy-50
-                  {% else %}bg-orange-500/10{% endif %}">
+                  {% else %}bg-orange-50{% endif %}">
                   {% if task.task_type == 'READ' %}📖
                   {% elif task.task_type == 'WATCH' %}🎥
                   {% elif task.task_type == 'MEET' %}🤝
@@ -162,20 +162,20 @@
                 </div>
 
                 <div class="flex-1 min-w-0">
-                  <p class="text-sm font-medium {% if task.pk in completed_ids %}text-white/40 line-through{% else %}text-white/80{% endif %}">
+                  <p class="text-sm font-medium {% if task.pk in completed_ids %}text-slate-400 line-through{% else %}text-slate-700{% endif %}">
                     {{ task.title }}
                   </p>
-                  <p class="text-xs text-white/30 mt-0.5">{{ task.content|truncatechars:100 }}</p>
+                  <p class="text-xs text-slate-400 mt-0.5">{{ task.content|truncatechars:100 }}</p>
 
                   <!-- Profile Card pour les tâches MEET -->
                   {% if task.task_type == 'MEET' and task.meet_colleague %}
-                  <div class="mt-2 flex items-center gap-2 p-2 bg-violet-500/5 border border-navy-100 rounded-xl">
+                  <div class="mt-2 flex items-center gap-2 p-2 bg-navy-50 border border-slate-100 rounded-xl">
                     <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-navy-600 to-navy-800
                                 flex items-center justify-center text-xs font-bold text-white">
                       {{ task.meet_colleague.initials }}
                     </div>
                     <div>
-                      <p class="text-xs font-medium text-white/70">
+                      <p class="text-xs font-medium text-slate-600">
                         {{ task.meet_colleague.get_full_name|default:task.meet_colleague.username }}
                       </p>
                       <p class="text-xs text-slate-400">
@@ -193,10 +193,10 @@
                 <!-- Bouton de complétion -->
                 {% if not task.pk in completed_ids %}
                 <button onclick="completeTask({{ task.pk }})"
-                        class="flex-shrink-0 w-6 h-6 rounded-lg border border-white/10
+                        class="flex-shrink-0 w-6 h-6 rounded-lg border border-slate-200
                                hover:border-green-500/50 hover:bg-emerald-50
                                flex items-center justify-center transition-all duration-200
-                               text-white/20 hover:text-emerald-600">
+                               text-slate-300 hover:text-emerald-600">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                   </svg>
@@ -214,7 +214,7 @@
             </div>
             {% elif item.is_future %}
             <!-- Message de verrouillage -->
-            <div class="flex items-center gap-2 mt-2 text-white/20 text-xs">
+            <div class="flex items-center gap-2 mt-2 text-slate-300 text-xs">
               <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
               </svg>
@@ -256,7 +256,7 @@ async function completeTask(taskId) {
 
     if (data.success) {
       // Mettre à jour la barre de progression
-      const bar  = document.querySelector('.bg-gradient-to-r.from-blue-500');
+      const bar  = document.querySelector('.bg-gradient-to-r.from-navy-400');
       const pct  = document.querySelector('.text-white\\/40.text-xs');
       if (bar) bar.style.width = data.progress + '%';
       if (pct) pct.textContent = data.progress + '%';
@@ -264,8 +264,8 @@ async function completeTask(taskId) {
       // Animation de complétion
       const taskEl = document.getElementById(`task-${taskId}`);
       if (taskEl) {
-        taskEl.classList.add('bg-green-500/5', 'border-green-500/10');
-        taskEl.classList.remove('bg-white/3', 'border-white/5');
+        taskEl.classList.add('bg-emerald-50', 'border-emerald-100');
+        taskEl.classList.remove('bg-slate-50', 'border-slate-100');
         if (btn) {
           btn.outerHTML = `
             <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200
@@ -277,7 +277,7 @@ async function completeTask(taskId) {
         }
         // Barrer le titre
         const title = taskEl.querySelector('p.text-sm.font-medium');
-        if (title) title.classList.add('line-through', 'text-white/40');
+        if (title) title.classList.add('line-through', 'text-slate-400');
       }
     }
   } catch (err) {

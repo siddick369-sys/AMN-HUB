@@ -3,74 +3,135 @@
 
 {% block title %}{% translate "Résultat du quiz" %} — AMN Employee Hub{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
-  <div class="w-full max-w-md animate-fade-in">
+{% block extra_head %}
+<style>
+  /* Confetti */
+  .confetti-piece {
+    position: fixed; width: 10px; height: 10px;
+    top: -10px; pointer-events: none; z-index: 9999;
+    animation: confetti-fall 3.5s ease-out forwards;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(115vh) rotate(720deg); opacity: 0; }
+  }
 
-    <!-- Résultat visuel -->
-    <div class="card rounded-2xl p-8 text-center mb-6
-                {% if passed %}border border-emerald-200{% else %}border border-red-500/10{% endif %}">
+  /* Score ring animation */
+  .score-ring { transition: stroke-dasharray 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+  /* Trophy bounce */
+  @keyframes trophy-bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    25% { transform: translateY(-20px) scale(1.1); }
+    75% { transform: translateY(-8px) scale(1.05); }
+  }
+  .trophy-bounce { animation: trophy-bounce 1s ease 0.3s both; }
+
+  /* XP badge pop */
+  @keyframes xp-badge-pop {
+    0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+    60%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+  }
+  .xp-badge { animation: xp-badge-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.8s both; }
+
+  /* Streak anim */
+  @keyframes streak-flame {
+    0%, 100% { transform: scaleY(1) rotate(-3deg); }
+    50%       { transform: scaleY(1.08) rotate(3deg); }
+  }
+  .streak-flame { animation: streak-flame 0.8s ease-in-out infinite; display: inline-block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+
+  <!-- Arrière-plan décoratif -->
+  {% if passed %}
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-80 h-80 bg-emerald-100 rounded-full blur-3xl opacity-60"></div>
+    <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-navy-100 rounded-full blur-3xl opacity-50"></div>
+  </div>
+  {% else %}
+  <div class="absolute inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-24 -left-24 w-80 h-80 bg-red-50 rounded-full blur-3xl opacity-60"></div>
+    <div class="absolute -bottom-24 -right-24 w-80 h-80 bg-orange-50 rounded-full blur-3xl opacity-50"></div>
+  </div>
+  {% endif %}
+
+  <div class="w-full max-w-md relative animate-fade-in">
+
+    <!-- Carte principale -->
+    <div class="bg-white rounded-3xl shadow-xl border
+      {% if passed %}border-emerald-200{% else %}border-red-100{% endif %}
+      p-8 text-center mb-5">
 
       <!-- Emoji résultat -->
-      <div class="text-6xl mb-5 animate-slide-up">
-        {% if passed %}🏆{% elif score >= 50 %}😅{% else %}💪{% endif %}
-      </div>
+      {% if passed %}
+      <div class="text-7xl mb-5 trophy-bounce select-none">🏆</div>
+      <h1 class="text-3xl font-black text-navy-700 mb-1">{% translate "Félicitations !" %}</h1>
+      <p class="text-slate-400 text-sm mb-6">{{ quiz.title }}</p>
+      {% else %}
+      <div class="text-7xl mb-5 select-none">💪</div>
+      <h1 class="text-2xl font-black text-navy-700 mb-1">{% translate "Continuez vos efforts !" %}</h1>
+      <p class="text-slate-400 text-sm mb-6">{{ quiz.title }}</p>
+      {% endif %}
 
-      <h1 class="text-2xl font-bold text-white mb-1">
-        {% if passed %}{% translate "Félicitations !" %}{% else %}{% translate "Continuez vos efforts !" %}{% endif %}
-      </h1>
-      <p class="text-slate-500 text-sm mb-6">{{ quiz.title }}</p>
-
-      <!-- Score circulaire (simulé avec gradient) -->
-      <div class="relative inline-flex items-center justify-center w-32 h-32 mb-6">
-        <svg class="w-32 h-32 -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54"
+      <!-- Score circulaire SVG -->
+      <div class="relative inline-flex items-center justify-center w-36 h-36 mb-6 mx-auto">
+        <svg class="w-36 h-36 -rotate-90" viewBox="0 0 120 120">
+          <!-- Track -->
+          <circle cx="60" cy="60" r="52" fill="none" stroke="#f1f5f9" stroke-width="10"/>
+          <!-- Fill animé -->
+          <circle cx="60" cy="60" r="52"
                   fill="none"
-                  stroke="rgba(255,255,255,0.05)"
-                  stroke-width="8"/>
-          <circle cx="60" cy="60" r="54"
-                  fill="none"
-                  stroke="{% if passed %}#22c55e{% else %}#ef4444{% endif %}"
-                  stroke-width="8"
+                  stroke="{% if passed %}#10b981{% else %}#ef4444{% endif %}"
+                  stroke-width="10"
                   stroke-linecap="round"
-                  stroke-dasharray="{{ score|floatformat:0 }} 100"
-                  stroke-dasharray="339.3"
-                  style="stroke-dasharray: calc({{ score }} * 3.393) 339.3; transition: stroke-dasharray 1s ease;"/>
+                  class="score-ring"
+                  id="score-circle"
+                  stroke-dasharray="0 326.7"/>
         </svg>
-        <div class="absolute text-center">
-          <p class="text-3xl font-bold {% if passed %}text-emerald-600{% else %}text-red-400{% endif %}">
-            {{ score|floatformat:0 }}%
-          </p>
-          <p class="text-xs text-slate-400">{% translate "score" %}</p>
+        <div class="absolute inset-0 flex flex-col items-center justify-center">
+          <span class="text-4xl font-black {% if passed %}text-emerald-600{% else %}text-red-500{% endif %}" id="score-display">0%</span>
+          <span class="text-xs text-slate-400 font-medium">{% translate "score" %}</span>
         </div>
       </div>
 
-      <!-- Détails -->
-      <div class="flex justify-center gap-6 mb-6">
+      <!-- Stats -->
+      <div class="flex justify-center gap-8 mb-6">
         <div class="text-center">
-          <p class="text-xl font-bold text-emerald-600">{{ correct }}</p>
-          <p class="text-xs text-slate-400">{% translate "correctes" %}</p>
+          <p class="text-2xl font-black text-emerald-600">{{ correct }}</p>
+          <p class="text-xs text-slate-400 font-medium">{% translate "correctes" %}</p>
         </div>
         <div class="w-px bg-slate-100"></div>
         <div class="text-center">
-          <p class="text-xl font-bold text-white/60">{{ total }}</p>
-          <p class="text-xs text-slate-400">{% translate "questions" %}</p>
+          <p class="text-2xl font-black text-slate-600">{{ total }}</p>
+          <p class="text-xs text-slate-400 font-medium">{% translate "questions" %}</p>
         </div>
         <div class="w-px bg-slate-100"></div>
         <div class="text-center">
-          <p class="text-xl font-bold text-navy-600">{{ threshold }}%</p>
-          <p class="text-xs text-slate-400">{% translate "requis" %}</p>
+          <p class="text-2xl font-black text-navy-700">{{ threshold }}%</p>
+          <p class="text-xs text-slate-400 font-medium">{% translate "requis" %}</p>
         </div>
+      </div>
+
+      <!-- Badge XP gagné -->
+      <div class="xp-badge inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-2xl px-5 py-2.5 mb-6">
+        <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+        </svg>
+        <span class="font-black text-amber-700">+{{ total|add:"10" }} XP {% translate "gagnés" %}</span>
       </div>
 
       <!-- Message contextuel -->
       {% if passed %}
-      <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-3 mb-5 text-sm text-green-300">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mb-6 text-sm text-emerald-700 font-medium">
         🎉 {% translate "Quiz réussi ! Votre certificat est en cours de génération." %}
       </div>
       {% else %}
-      <div class="bg-orange-500/10 border border-orange-500/20 rounded-2xl p-3 mb-5 text-sm text-orange-300">
-        📖 {% blocktranslate with threshold=threshold %}Obtenez au moins {{ threshold }}% pour réussir. Révisez et réessayez !{% endblocktranslate %}
+      <div class="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 text-sm text-orange-700 font-medium">
+        📖 {% blocktranslate with threshold=threshold %}Obtenez au moins {{ threshold }}% pour réussir. Révisez les leçons et réessayez !{% endblocktranslate %}
       </div>
       {% endif %}
 
@@ -78,18 +139,77 @@
       <div class="space-y-3">
         {% if not passed %}
         <a href="{% url 'learning:quiz' quiz.pk %}"
-           class="block btn-primary py-3 rounded-2xl text-sm font-semibold text-navy-700 text-center">
-          🔄 {% translate "Réessayer" %}
+           class="block btn-emerald py-3.5 rounded-xl text-sm font-bold text-white text-center">
+          🔄 {% translate "Réessayer le quiz" %}
         </a>
         {% endif %}
         <a href="{% url 'learning:course_detail' quiz.course.pk %}"
-           class="block py-3 rounded-2xl text-sm font-medium text-white/50
-                  hover:text-white/80 hover:bg-slate-50 transition-all glass text-center">
-          {% translate "Retour au cours" %}
+           class="block py-3.5 rounded-xl text-sm font-semibold text-center
+                  border border-slate-200 bg-white text-slate-600 hover:border-navy-300 hover:text-navy-700 transition-all">
+          ← {% translate "Retour au cours" %}
         </a>
       </div>
     </div>
 
+    <!-- Streak -->
+    <div class="text-center text-sm text-slate-400">
+      <a href="{% url 'learning:lms_dashboard' %}" class="text-navy-600 hover:text-navy-800 font-semibold transition-colors">
+        {% translate "Voir toutes mes formations" %}
+      </a>
+    </div>
+
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const passed = {% if passed %}true{% else %}false{% endif %};
+const finalScore = {{ score|floatformat:0 }};
+
+// Anime le compteur de score
+function animateScore() {
+  const circle = document.getElementById('score-circle');
+  const display = document.getElementById('score-display');
+  const circumference = 326.7;
+
+  let current = 0;
+  const step = finalScore / 60;  // 60 frames ≈ 1 seconde
+
+  function tick() {
+    current = Math.min(current + step, finalScore);
+    display.textContent = Math.round(current) + '%';
+    circle.style.strokeDasharray = `${(current / 100) * circumference} ${circumference}`;
+    if (current < finalScore) requestAnimationFrame(tick);
+  }
+  setTimeout(() => requestAnimationFrame(tick), 300);
+}
+
+// Confetti si réussi
+function launchConfetti() {
+  const colors = ['#10b981','#1e3a5f','#f59e0b','#6366f1','#ef4444','#f97316'];
+  const shapes = [true, false]; // cercle ou carré
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.borderRadius = shapes[Math.floor(Math.random() * 2)] ? '50%' : '2px';
+    el.style.width  = (8 + Math.random() * 8) + 'px';
+    el.style.height = (8 + Math.random() * 8) + 'px';
+    el.style.animationDelay    = (Math.random() * 1.2) + 's';
+    el.style.animationDuration = (2.5 + Math.random() * 2) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 5000);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  animateScore();
+  if (passed) {
+    setTimeout(launchConfetti, 600);
+    setTimeout(launchConfetti, 1800); // double salve
+  }
+});
+</script>
 {% endblock %}

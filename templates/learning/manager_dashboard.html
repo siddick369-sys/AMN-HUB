@@ -54,7 +54,7 @@
     <!-- Parcours — Stats -->
     {% if paths %}
     <section class="mb-8">
-      <h2 class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+      <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
         {% translate "Parcours de formation" %}
       </h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -63,7 +63,7 @@
           <div class="flex items-start justify-between mb-3">
             <div>
               <h3 class="font-semibold text-navy-700 text-sm">{{ path.title }}</h3>
-              <p class="text-xs text-white/30 mt-0.5">{{ path.target_department }}</p>
+              <p class="text-xs text-slate-400 mt-0.5">{{ path.target_department }}</p>
             </div>
             <span class="text-xs px-2 py-1 bg-navy-50 text-navy-600 rounded-lg border border-navy-200">
               {{ path.total_enrollments }} {% translate "inscrits" %}
@@ -91,13 +91,13 @@
 
     <!-- Tableau équipe -->
     <section>
-      <h2 class="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">
+      <h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">
         {% translate "Progression de l'équipe" %}
       </h2>
 
       <div class="card rounded-2xl overflow-hidden">
         <!-- En-tête tableau -->
-        <div class="grid grid-cols-12 gap-2 px-5 py-3 border-b border-slate-100 text-xs text-white/30 uppercase tracking-wider">
+        <div class="grid grid-cols-12 gap-2 px-5 py-3 border-b border-slate-100 text-xs text-slate-400 uppercase tracking-wider">
           <div class="col-span-4">{% translate "Employé" %}</div>
           <div class="col-span-3">{% translate "Leçons complétées" %}</div>
           <div class="col-span-2 text-center">{% translate "Quiz réussis" %}</div>
@@ -119,10 +119,10 @@
               {{ emp.initials }}
             </div>
             <div class="min-w-0">
-              <p class="text-sm font-medium text-white/80 truncate">
+              <p class="text-sm font-medium text-slate-700 truncate">
                 {{ emp.get_full_name|default:emp.username }}
               </p>
-              <p class="text-xs text-white/30 truncate">{{ emp.job_title|default:emp.get_department_display }}</p>
+              <p class="text-xs text-slate-400 truncate">{{ emp.job_title|default:emp.get_department_display }}</p>
             </div>
           </div>
 
@@ -132,19 +132,19 @@
               <!-- Jauge de progression -->
               {% if emp.lessons_done > 0 %}
               <div class="flex-1 h-1.5 bg-slate-50 rounded-full overflow-hidden max-w-[80px]">
-                <div class="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full"
+                <div class="h-full bg-gradient-to-r from-navy-400 to-emerald-500 rounded-full"
                      style="width: min(100%, {{ emp.lessons_done }}0%)"></div>
               </div>
               {% else %}
               <div class="flex-1 h-1.5 bg-slate-50 rounded-full max-w-[80px]"></div>
               {% endif %}
-              <span class="text-xs text-white/50 tabular-nums">{{ emp.lessons_done }}</span>
+              <span class="text-xs text-slate-500 tabular-nums">{{ emp.lessons_done }}</span>
             </div>
           </div>
 
           <!-- Quiz -->
           <div class="col-span-2 text-center">
-            <span class="text-sm font-medium {% if emp.quiz_passed > 0 %}text-blue-400{% else %}text-white/20{% endif %}">
+            <span class="text-sm font-medium {% if emp.quiz_passed > 0 %}text-navy-600{% else %}text-slate-300{% endif %}">
               {{ emp.quiz_passed }}
             </span>
           </div>
@@ -157,7 +157,7 @@
               🏆 {{ emp.certs_earned }}
             </span>
             {% else %}
-            <span class="text-white/20 text-xs">—</span>
+            <span class="text-slate-300 text-xs">—</span>
             {% endif %}
           </div>
 
@@ -181,7 +181,7 @@
       </div>
 
       <!-- Légende -->
-      <div class="flex items-center gap-4 mt-3 px-2 text-xs text-white/25">
+      <div class="flex items-center gap-4 mt-3 px-2 text-xs text-slate-300">
         <div class="flex items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-green-500"></span>
           {% translate "Certifié" %}
