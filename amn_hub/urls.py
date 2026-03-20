@@ -23,6 +23,7 @@ urlpatterns += i18n_patterns(
     path('auth/', include('users.urls', namespace='users')),
     path('dashboard/', include('users.dashboard_urls', namespace='dashboard')),
     path('learning/', include('learning.urls', namespace='learning')),
+    path('attendance/', include('attendance.urls', namespace='attendance')),
     prefix_default_language=False,
 )
 

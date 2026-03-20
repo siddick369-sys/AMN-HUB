@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rapport de présence — AMN Employee Hub</title>
+<style>
+  body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #f8fafc; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
+  .header { background: linear-gradient(135deg, #1e3a5f 0%, #10b981 100%); padding: 32px; }
+  .header h1 { color: #fff; font-size: 22px; font-weight: 700; margin: 0; }
+  .header p  { color: rgba(255,255,255,0.8); font-size: 14px; margin: 6px 0 0; }
+  .body { padding: 32px; }
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+  .stat { text-align: center; padding: 16px 8px; border-radius: 10px; border: 1px solid; }
+  .stat-present { background: #ecfdf5; border-color: #a7f3d0; }
+  .stat-late    { background: #fffbeb; border-color: #fde68a; }
+  .stat-absent  { background: #fef2f2; border-color: #fca5a5; }
+  .stat-suspect { background: #fdf2f8; border-color: #f9a8d4; }
+  .stat .num    { font-size: 28px; font-weight: 800; display: block; }
+  .stat .lbl    { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-present .num { color: #065f46; } .stat-present .lbl { color: #047857; }
+  .stat-late    .num { color: #92400e; } .stat-late    .lbl { color: #b45309; }
+  .stat-absent  .num { color: #991b1b; } .stat-absent  .lbl { color: #dc2626; }
+  .stat-suspect .num { color: #831843; } .stat-suspect .lbl { color: #9d174d; }
+  .section-title { font-size: 14px; font-weight: 700; color: #1e293b; margin: 24px 0 12px; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+  .absent-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .absent-item { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #991b1b; font-weight: 500; }
+  .progress-bar { background: #e2e8f0; border-radius: 100px; height: 8px; overflow: hidden; margin-top: 16px; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #1e3a5f); border-radius: 100px; }
+  .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 20px 32px; text-align: center; }
+  .footer p { color: #94a3b8; font-size: 12px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 Rapport de Présence</h1>
+    <p>{{ date|date:"l d F Y" }} — {{ app_name }}</p>
+  </div>
+
+  <div class="body">
+    <p style="color:#64748b;font-size:13px;margin-bottom:0;">
+      Voici le résumé de présence de la journée pour l'ensemble des employés actifs.
+    </p>
+
+    <!-- Taux de présence -->
+    <div style="margin-top:16px;">
+      {% with rate=report.present_count|add:report.late_count %}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:600;color:#1e293b;">Taux de présence global</span>
+        {% if report.total_employees > 0 %}
+        <span style="font-size:16px;font-weight:800;color:#1e3a5f;">{{ rate }}/{{ report.total_employees }}</span>
+        {% endif %}
+      </div>
+      {% endwith %}
+      <div class="progress-bar">
+        {% if report.total_employees > 0 %}
+        <div class="progress-fill" style="width:{% widthratio report.present_count|add:report.late_count report.total_employees 100 %}%"></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Statistiques -->
+    <div class="stats-row" style="margin-top:20px;">
+      <div class="stat stat-present">
+        <span class="num">{{ report.present_count }}</span>
+        <span class="lbl">Présents</span>
+      </div>
+      <div class="stat stat-late">
+        <span class="num">{{ report.late_count }}</span>
+        <span class="lbl">Retards</span>
+      </div>
+      <div class="stat stat-absent">
+        <span class="num">{{ report.absent_count }}</span>
+        <span class="lbl">Absents</span>
+      </div>
+      <div class="stat stat-suspect">
+        <span class="num">{{ report.suspicious_count }}</span>
+        <span class="lbl">Suspects</span>
+      </div>
+    </div>
+
+    <!-- Liste des absents -->
+    {% if absent_employees %}
+    <div class="section-title">
+      Absents du jour
+      {% if report.absent_count > 20 %}<span style="font-weight:400;color:#94a3b8;font-size:12px;">(20 premiers affichés sur {{ report.absent_count }})</span>{% endif %}
+    </div>
+    <div class="absent-list">
+      {% for emp in absent_employees %}
+      <div class="absent-item">{{ emp.get_full_name|default:emp.username }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+
+  <div class="footer">
+    <p>Rapport généré automatiquement le {{ date|date:"d/m/Y" }} à 18h00 — {{ app_name }}</p>
+    <p style="margin-top:4px;">Africa Mobile Networks · Ne pas répondre à cet email</p>
+  </div>
+</div>
+</body>
+</html>

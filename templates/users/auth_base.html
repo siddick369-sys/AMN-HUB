@@ -2,13 +2,13 @@
 {% load i18n %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+<div class="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-navy-50">
 
-  <!-- Arrière-plan décoratif (orbes lumineux) -->
+  <!-- Arrière-plan décoratif -->
   <div class="absolute inset-0 overflow-hidden pointer-events-none">
-    <div class="absolute -top-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
-    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-violet-600/15 rounded-full blur-3xl animate-pulse-slow" style="animation-delay:1.5s"></div>
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/5 rounded-full blur-3xl"></div>
+    <div class="absolute -top-32 -right-32 w-80 h-80 bg-navy-100 rounded-full blur-3xl opacity-60 animate-pulse-slow"></div>
+    <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-100 rounded-full blur-3xl opacity-50 animate-pulse-slow" style="animation-delay:1.5s"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-navy-50 rounded-full blur-3xl opacity-40"></div>
   </div>
 
   <!-- Carte centrale -->
@@ -16,43 +16,43 @@
 
     <!-- Logo & En-tête -->
     <div class="text-center mb-8">
-      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 mb-4 shadow-lg shadow-blue-500/30">
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-navy-700 to-navy-500 mb-4 shadow-lg">
         <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064"/>
         </svg>
       </div>
-      <h1 class="text-xl font-semibold text-white/90">AMN Employee Hub</h1>
-      <p class="text-sm text-white/40 mt-1">Africa Mobile Networks</p>
+      <h1 class="text-xl font-semibold text-navy-700">AMN Employee Hub</h1>
+      <p class="text-sm text-slate-400 mt-1">Africa Mobile Networks</p>
     </div>
 
     <!-- Sélecteur de langue -->
     <div class="flex justify-center gap-2 mb-6">
-      <form action="{% url 'set_language' %}" method="post" id="lang-form">
+      <form action="{% url 'set_language' %}" method="post">
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ request.path }}" />
-        <div class="flex gap-1 glass rounded-xl p-1">
+        <div class="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
           <button type="submit" name="language" value="fr"
                   class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-                  {% if LANGUAGE_CODE == 'fr' %}bg-white/10 text-white{% else %}text-white/40 hover:text-white/70{% endif %}">
-            🇫🇷 FR
+                  {% if LANGUAGE_CODE == 'fr' %}bg-navy-700 text-white shadow-sm{% else %}text-slate-400 hover:text-navy-600{% endif %}">
+            FR
           </button>
           <button type="submit" name="language" value="en"
                   class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all
-                  {% if LANGUAGE_CODE == 'en' %}bg-white/10 text-white{% else %}text-white/40 hover:text-white/70{% endif %}">
-            🇬🇧 EN
+                  {% if LANGUAGE_CODE == 'en' %}bg-navy-700 text-white shadow-sm{% else %}text-slate-400 hover:text-navy-600{% endif %}">
+            EN
           </button>
         </div>
       </form>
     </div>
 
     <!-- Carte principale -->
-    <div class="glass rounded-3xl p-8 shadow-2xl shadow-black/40">
+    <div class="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
       {% block auth_content %}{% endblock %}
     </div>
 
     <!-- Footer -->
-    <p class="text-center text-xs text-white/20 mt-6">
+    <p class="text-center text-xs text-slate-400 mt-6">
       © {% now "Y" %} Africa Mobile Networks · {% translate "Tous droits réservés" %}
     </p>
 

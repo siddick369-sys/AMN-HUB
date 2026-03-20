@@ -4,24 +4,24 @@
 {% block title %}{{ quiz.title }} — AMN Employee Hub{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#0f0f14] flex flex-col">
+<div class="min-h-screen bg-slate-50 flex flex-col">
 
   <!-- Header quiz -->
-  <header class="border-b border-white/5 px-4 py-4 flex-shrink-0">
+  <header class="border-b border-slate-100 px-4 py-4 flex-shrink-0">
     <div class="max-w-2xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a href="{% url 'learning:course_detail' quiz.course.pk %}"
-           class="text-white/40 hover:text-white/70 transition-colors">
+           class="text-slate-400 hover:text-navy-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </a>
         <div>
-          <h1 class="font-semibold text-white text-sm">{{ quiz.title }}</h1>
-          <p class="text-white/30 text-xs">{{ quiz.course.title }}</p>
+          <h1 class="font-semibold text-navy-700 text-sm">{{ quiz.title }}</h1>
+          <p class="text-slate-400 text-xs">{{ quiz.course.title }}</p>
         </div>
       </div>
-      <div class="flex items-center gap-2 text-xs text-white/30">
+      <div class="flex items-center gap-2 text-xs text-slate-400">
         <span>{{ attempts_left }} {% translate "tentative(s) restante(s)" %}</span>
         <span class="w-1.5 h-1.5 rounded-full bg-white/20"></span>
         <span>{% translate "Requis :" %} {{ quiz.passing_score_percentage }}%</span>
@@ -38,12 +38,12 @@
 
     {% if best_attempt and best_attempt.passed %}
     <!-- Déjà réussi -->
-    <div class="glass rounded-3xl p-8 text-center border border-green-500/20">
+    <div class="card rounded-2xl p-8 text-center border border-emerald-200">
       <p class="text-5xl mb-4">🏆</p>
       <h2 class="text-xl font-bold text-white mb-2">{% translate "Quiz déjà réussi !" %}</h2>
-      <p class="text-white/40">{% translate "Vous avez obtenu" %} {{ best_attempt.score_percentage|floatformat:0 }}%</p>
+      <p class="text-slate-400">{% translate "Vous avez obtenu" %} {{ best_attempt.score_percentage|floatformat:0 }}%</p>
       <a href="{% url 'learning:course_detail' quiz.course.pk %}"
-         class="inline-block mt-6 btn-primary px-6 py-3 rounded-2xl text-sm font-semibold text-white">
+         class="inline-block mt-6 btn-primary px-6 py-3 rounded-2xl text-sm font-semibold text-navy-700">
         {% translate "Retour au cours" %}
       </a>
     </div>
@@ -53,23 +53,23 @@
       {% csrf_token %}
       <div class="space-y-6" id="questions-container">
         {% for question in quiz.questions.all %}
-        <div class="quiz-question glass rounded-3xl p-6 animate-fade-in"
+        <div class="quiz-question card rounded-2xl p-6 animate-fade-in"
              id="question-{{ forloop.counter }}"
              data-question="{{ forloop.counter }}"
              style="animation-delay: {{ forloop.counter0 }}00ms">
 
           <!-- Numéro + Énoncé -->
           <div class="flex items-start gap-3 mb-5">
-            <span class="flex-shrink-0 w-7 h-7 rounded-xl bg-blue-500/10 border border-blue-500/20
-                         flex items-center justify-center text-xs font-bold text-blue-400">
+            <span class="flex-shrink-0 w-7 h-7 rounded-xl bg-navy-50 border border-navy-200
+                         flex items-center justify-center text-xs font-bold text-navy-600">
               {{ forloop.counter }}
             </span>
-            <p class="text-white font-medium leading-relaxed">{{ question.text }}</p>
+            <p class="text-navy-700 font-medium leading-relaxed">{{ question.text }}</p>
           </div>
 
           {% if question.is_multiple_choice %}
           <p class="text-xs text-white/30 mb-3">
-            <span class="px-2 py-0.5 bg-violet-500/10 rounded-full border border-violet-500/20 text-violet-400">
+            <span class="px-2 py-0.5 bg-navy-50 rounded-full border border-navy-200 text-navy-600">
               {% translate "Plusieurs réponses possibles" %}
             </span>
           </p>
@@ -79,7 +79,7 @@
           <div class="space-y-2">
             {% for choice in question.choices.all %}
             <label class="flex items-center gap-3 p-4 rounded-2xl cursor-pointer
-                          border border-white/5 hover:border-white/15 hover:bg-white/5
+                          border border-slate-100 hover:border-white/15 hover:bg-slate-50
                           transition-all duration-200 group choice-label"
                    for="choice-{{ choice.pk }}">
               <input

@@ -1,0 +1,310 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Pointage GPS" %} — AMN Employee Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* Pulse animation pour le bouton GPS */
+  @keyframes gps-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50%       { box-shadow: 0 0 0 16px rgba(16,185,129,0); }
+  }
+  .gps-pulse { animation: gps-pulse 2s ease-in-out infinite; }
+
+  /* Streak fire */
+  @keyframes streak-bounce {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-4px); }
+  }
+  .streak-bounce { animation: streak-bounce 1.5s ease-in-out infinite; }
+
+  /* Status badge */
+  .status-present { background:#d1fae5; color:#065f46; border-color:#a7f3d0; }
+  .status-late    { background:#fef3c7; color:#92400e; border-color:#fde68a; }
+  .status-absent  { background:#fee2e2; color:#991b1b; border-color:#fca5a5; }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    top: -10px;
+    pointer-events: none;
+    z-index: 9999;
+    animation: confetti-fall 3s ease-out forwards;
+  }
+  @keyframes confetti-fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'dashboard:home' %}" class="text-slate-400 hover:text-navy-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-bold text-navy-700">{% translate "Pointage GPS" %}</h1>
+          <p class="text-xs text-slate-400">{{ today|date:"l d F Y" }}</p>
+        </div>
+      </div>
+      <!-- Streak -->
+      {% if streak > 0 %}
+      <div class="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-xl px-3 py-1.5">
+        <span class="text-lg streak-bounce">🔥</span>
+        <div>
+          <p class="text-xs font-bold text-amber-700">{{ streak }}</p>
+          <p class="text-xs text-amber-600 leading-none">{% translate "jours" %}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- ─── STATUT DU JOUR ─────────────────────────────────────────────── -->
+    {% if already_checked_in %}
+    <div class="card p-6 animate-fade-in">
+      <div class="flex items-center gap-4">
+        <div class="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100
+                    flex items-center justify-center flex-shrink-0">
+          <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <h2 class="font-bold text-navy-700 text-lg">{% translate "Pointage enregistré" %}</h2>
+          <p class="text-sm text-slate-500">
+            {{ today_record.check_in_time|time:"H:i" }} — {{ today_record.office.name|default:"—" }}
+          </p>
+          {% if today_record.distance_meters %}
+          <p class="text-xs text-slate-400 mt-1">
+            {{ today_record.distance_meters|floatformat:0 }}m {% translate "du bureau" %}
+          </p>
+          {% endif %}
+        </div>
+        <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold border
+          {% if today_record.status == 'PRESENT' %}status-present
+          {% elif today_record.status == 'LATE' %}status-late
+          {% endif %}">
+          {{ today_record.get_status_display }}
+        </span>
+      </div>
+    </div>
+
+    {% else %}
+    <!-- ─── BOUTON DE POINTAGE GPS ─────────────────────────────────────── -->
+    <div class="card p-8 text-center animate-slide-up">
+      <div class="mb-6">
+        <h2 class="text-xl font-bold text-navy-700 mb-1">{% translate "Pointer votre présence" %}</h2>
+        <p class="text-sm text-slate-400">{% translate "Votre position GPS sera vérifiée automatiquement." %}</p>
+      </div>
+
+      <!-- Bouton GPS -->
+      <button id="checkin-btn"
+              class="w-28 h-28 rounded-full btn-emerald gps-pulse mx-auto flex items-center justify-center
+                     flex-col gap-2 text-white shadow-lg mb-6">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span class="text-xs font-semibold">GPS</span>
+      </button>
+
+      <!-- État -->
+      <div id="checkin-status" class="hidden">
+        <div id="loading-state" class="hidden">
+          <div class="flex items-center justify-center gap-2 text-slate-500 text-sm">
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <span>{% translate "Localisation en cours..." %}</span>
+          </div>
+        </div>
+        <div id="result-state" class="hidden rounded-xl p-4 border text-sm font-medium"></div>
+      </div>
+
+      <p class="text-xs text-slate-400 mt-4">
+        {% translate "Assurez-vous d'autoriser l'accès à votre position GPS." %}
+      </p>
+    </div>
+    {% endif %}
+
+    <!-- ─── HISTORIQUE 30 JOURS ────────────────────────────────────────── -->
+    {% if history %}
+    <div class="card p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-semibold text-navy-700">{% translate "Historique (30 jours)" %}</h3>
+        <a href="{% url 'attendance:history' %}"
+           class="text-xs text-navy-600 hover:text-navy-800 font-medium transition-colors">
+          {% translate "Voir tout" %} →
+        </a>
+      </div>
+      <div class="space-y-2">
+        {% for record in history|slice:":10" %}
+        <div class="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full flex-shrink-0
+              {% if record.status == 'PRESENT' %}bg-emerald-500
+              {% elif record.status == 'LATE' %}bg-amber-400
+              {% elif record.status == 'SUSPICIOUS' %}bg-pink-500
+              {% else %}bg-red-400{% endif %}">
+            </div>
+            <div>
+              <p class="text-sm font-medium text-slate-700">{{ record.date|date:"d/m/Y" }}</p>
+              {% if record.check_in_time %}
+              <p class="text-xs text-slate-400">{{ record.check_in_time|time:"H:i" }}
+                {% if record.office %} — {{ record.office.name }}{% endif %}</p>
+              {% endif %}
+            </div>
+          </div>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border
+            {% if record.status == 'PRESENT' %}status-present
+            {% elif record.status == 'LATE' %}status-late
+            {% else %}status-absent{% endif %}">
+            {{ record.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const btn    = document.getElementById('checkin-btn');
+  const status = document.getElementById('checkin-status');
+  const loading = document.getElementById('loading-state');
+  const result  = document.getElementById('result-state');
+  const offices = {{ offices_json|safe }};
+
+  if (!btn) return;
+
+  function showLoading() {
+    status.classList.remove('hidden');
+    loading.classList.remove('hidden');
+    result.classList.add('hidden');
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.classList.remove('gps-pulse');
+  }
+
+  function showResult(msg, type) {
+    loading.classList.add('hidden');
+    result.classList.remove('hidden');
+    result.textContent = msg;
+    if (type === 'success') {
+      result.className = 'rounded-xl p-4 border text-sm font-medium bg-emerald-50 border-emerald-200 text-emerald-700';
+    } else if (type === 'warning') {
+      result.className = 'rounded-xl p-4 border text-sm font-medium bg-amber-50 border-amber-200 text-amber-700';
+    } else {
+      result.className = 'rounded-xl p-4 border text-sm font-medium bg-red-50 border-red-200 text-red-700';
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      btn.classList.add('gps-pulse');
+    }
+  }
+
+  function launchConfetti() {
+    const colors = ['#10b981','#1e3a5f','#f59e0b','#ef4444','#6366f1'];
+    for (let i = 0; i < 60; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      el.style.animationDelay = Math.random() * 1.5 + 's';
+      el.style.animationDuration = (2 + Math.random() * 2) + 's';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }
+  }
+
+  // Calcul distance Haversine (JS côté client)
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  btn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      alert('{% translate "Géolocalisation non supportée par votre navigateur." %}');
+      return;
+    }
+    showLoading();
+    loading.querySelector('span').textContent = '{% translate "Localisation en cours..." %}';
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        loading.querySelector('span').textContent = '{% translate "Vérification en cours..." %}';
+
+        // Génération empreinte appareil côté client
+        const fp = btoa([
+          navigator.userAgent,
+          screen.width + 'x' + screen.height,
+          Intl.DateTimeFormat().resolvedOptions().timeZone,
+          navigator.language,
+          navigator.hardwareConcurrency || 0
+        ].join('|')).slice(0, 64);
+
+        fetch('{% url "attendance:check_in" %}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+          },
+          body: JSON.stringify({ latitude: lat, longitude: lon, device_fingerprint: fp }),
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            const isLate = data.is_late;
+            const msg = isLate
+              ? `{% translate "Pointage enregistré avec retard" %} — ${data.office_name} (${data.distance_meters}m)`
+              : `{% translate "Pointage enregistré avec succès" %} — ${data.office_name} (${data.distance_meters}m)`;
+            showResult(msg, isLate ? 'warning' : 'success');
+            if (!isLate) launchConfetti();
+            setTimeout(() => location.reload(), 2000);
+          } else {
+            showResult(data.error || '{% translate "Erreur lors du pointage." %}', 'error');
+          }
+        })
+        .catch(() => showResult('{% translate "Erreur réseau. Réessayez." %}', 'error'));
+      },
+      (err) => {
+        const msgs = {
+          1: '{% translate "Accès GPS refusé. Autorisez la géolocalisation dans vos paramètres." %}',
+          2: '{% translate "Position GPS indisponible. Réessayez." %}',
+          3: '{% translate "Délai GPS dépassé. Réessayez." %}',
+        };
+        showResult(msgs[err.code] || '{% translate "Erreur GPS." %}', 'error');
+      },
+      { timeout: 15000, maximumAge: 0, enableHighAccuracy: true }
+    );
+  });
+})();
+</script>
+{% endblock %}

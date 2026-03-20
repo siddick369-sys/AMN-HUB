@@ -12,16 +12,15 @@ from .models import Employee, PreferredLanguage
 
 # ─── Style Tailwind commun pour les inputs ───────────────────────────────────
 INPUT_CLASSES = (
-    'w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl '
-    'text-white placeholder-white/30 focus:outline-none focus:ring-2 '
-    'focus:ring-blue-500 focus:border-transparent transition-all duration-200 '
-    'backdrop-blur-sm'
+    'w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl '
+    'text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 '
+    'focus:ring-navy-500 focus:border-navy-400 transition-all duration-200'
 )
 
 SELECT_CLASSES = (
-    'w-full px-4 py-3 bg-gray-900 border border-white/10 rounded-2xl '
-    'text-white focus:outline-none focus:ring-2 focus:ring-blue-500 '
-    'focus:border-transparent transition-all duration-200'
+    'w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl '
+    'text-slate-800 focus:outline-none focus:ring-2 focus:ring-navy-500 '
+    'focus:border-navy-400 transition-all duration-200'
 )
 
 
@@ -140,7 +139,7 @@ class LoginForm(forms.Form):
         label=_('Se souvenir de moi'),
         required=False,
         widget=forms.CheckboxInput(attrs={
-            'class': 'w-4 h-4 text-blue-500 bg-white/5 border-white/10 rounded focus:ring-blue-500'
+            'class': 'w-4 h-4 text-navy-600 bg-white border-slate-300 rounded focus:ring-navy-500'
         })
     )
 

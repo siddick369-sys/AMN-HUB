@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Mon historique de présence" %} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-3xl mx-auto flex items-center gap-3">
+      <a href="{% url 'attendance:home' %}" class="text-slate-400 hover:text-navy-600 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <h1 class="font-bold text-navy-700">{% translate "Historique de présence" %}</h1>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-4 py-6 space-y-5">
+
+    <!-- Statistiques -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+      <div class="card p-4 text-center">
+        <p class="text-2xl font-bold text-navy-700">{{ streak }}</p>
+        <p class="text-xs text-slate-400 mt-1">{% translate "Jours consécutifs" %}</p>
+      </div>
+      <div class="card p-4 text-center">
+        <p class="text-2xl font-bold text-emerald-600">{{ present_count }}</p>
+        <p class="text-xs text-slate-400 mt-1">{% translate "Présences" %}</p>
+      </div>
+      <div class="card p-4 text-center">
+        <p class="text-2xl font-bold text-amber-500">{{ late_count }}</p>
+        <p class="text-xs text-slate-400 mt-1">{% translate "Retards" %}</p>
+      </div>
+      <div class="card p-4 text-center">
+        <p class="text-2xl font-bold text-red-500">{{ failed_count }}</p>
+        <p class="text-xs text-slate-400 mt-1">{% translate "Échecs" %}</p>
+      </div>
+    </div>
+
+    <!-- Liste des pointages -->
+    <div class="card p-6 animate-slide-up">
+      <h2 class="font-semibold text-navy-700 mb-4">{% translate "Derniers pointages (90 jours)" %}</h2>
+
+      {% if records %}
+      <div class="space-y-2">
+        {% for record in records %}
+        <div class="flex items-center gap-4 py-3 border-b border-slate-100 last:border-0">
+          <!-- Indicateur statut -->
+          <div class="w-2.5 h-2.5 rounded-full flex-shrink-0
+            {% if record.status == 'PRESENT' %}bg-emerald-500
+            {% elif record.status == 'LATE' %}bg-amber-400
+            {% elif record.status == 'SUSPICIOUS' %}bg-pink-500
+            {% else %}bg-red-400{% endif %}">
+          </div>
+
+          <!-- Date + heure -->
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-slate-700">{{ record.date|date:"d/m/Y" }}</p>
+            <p class="text-xs text-slate-400 truncate">
+              {{ record.check_in_time|time:"H:i" }}
+              {% if record.office %} · {{ record.office.name }}{% endif %}
+              {% if record.distance_meters %} · {{ record.distance_meters|floatformat:0 }}m{% endif %}
+            </p>
+          </div>
+
+          <!-- Badge statut -->
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border flex-shrink-0
+            {% if record.status == 'PRESENT' %}bg-emerald-50 text-emerald-700 border-emerald-200
+            {% elif record.status == 'LATE' %}bg-amber-50 text-amber-700 border-amber-200
+            {% elif record.status == 'SUSPICIOUS' %}bg-pink-50 text-pink-700 border-pink-200
+            {% else %}bg-red-50 text-red-700 border-red-200{% endif %}">
+            {{ record.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <svg class="w-12 h-12 text-slate-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        <p class="text-slate-400 text-sm">{% translate "Aucun pointage enregistré." %}</p>
+        <a href="{% url 'attendance:home' %}" class="text-navy-600 hover:text-navy-800 text-sm font-medium mt-2 inline-block">
+          {% translate "Pointer maintenant" %} →
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     # AMN Apps
     'users',
     'learning',
+    'attendance',
 ]
 
 # ─────────────────────────────────────────────

@@ -4,29 +4,29 @@
 {% block title %}{% translate "Mon Intégration" %} — AMN Employee Hub{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#0f0f14]">
+<div class="min-h-screen bg-slate-50">
 
   <!-- Header -->
-  <header class="border-b border-white/5 px-4 py-4 sticky top-0 z-40 backdrop-blur-xl bg-[#0f0f14]/80">
+  <header class="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-40 shadow-sm">
     <div class="max-w-2xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <a href="{% url 'dashboard:home' %}" class="text-white/40 hover:text-white/70 transition-colors">
+        <a href="{% url 'dashboard:home' %}" class="text-slate-400 hover:text-navy-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </a>
         <div>
-          <h1 class="font-semibold text-white text-sm">{% translate "Mon Intégration" %}</h1>
-          <p class="text-white/30 text-xs">{% blocktranslate with days=days_elapsed %}Jour {{ days }} de votre intégration{% endblocktranslate %}</p>
+          <h1 class="font-semibold text-navy-700 text-sm">{% translate "Mon Intégration" %}</h1>
+          <p class="text-slate-400 text-xs">{% blocktranslate with days=days_elapsed %}Jour {{ days }} de votre intégration{% endblocktranslate %}</p>
         </div>
       </div>
       <!-- Barre de progression globale -->
       <div class="flex items-center gap-2">
-        <div class="w-24 h-1.5 bg-white/10 rounded-full overflow-hidden">
+        <div class="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
           <div class="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all duration-700"
                style="width: {{ progress }}%"></div>
         </div>
-        <span class="text-xs text-white/40">{{ progress }}%</span>
+        <span class="text-xs text-slate-400">{{ progress }}%</span>
       </div>
     </div>
   </header>
@@ -35,28 +35,28 @@
 
     <!-- Carte Buddy (si assigné) -->
     {% if buddy_assignment and buddy_assignment.buddy %}
-    <div class="glass rounded-3xl p-5 mb-8 animate-fade-in border border-violet-500/10">
+    <div class="card rounded-2xl p-5 mb-8 animate-fade-in border border-navy-100">
       <div class="flex items-center gap-4">
         <!-- Avatar Buddy -->
-        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600
+        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-navy-600 to-navy-800
                     flex items-center justify-center text-xl font-bold text-white flex-shrink-0">
           {{ buddy_assignment.buddy.initials }}
         </div>
         <div class="flex-1 min-w-0">
-          <p class="text-xs text-violet-400 font-medium mb-0.5 uppercase tracking-wider">
+          <p class="text-xs text-navy-600 font-medium mb-0.5 uppercase tracking-wider">
             🤝 {% translate "Votre Buddy / Parrain" %}
           </p>
-          <p class="font-semibold text-white text-sm">
+          <p class="font-semibold text-navy-700 text-sm">
             {{ buddy_assignment.buddy.get_full_name|default:buddy_assignment.buddy.username }}
           </p>
-          <p class="text-white/40 text-xs truncate">
+          <p class="text-slate-400 text-xs truncate">
             {{ buddy_assignment.buddy.job_title|default:buddy_assignment.buddy.get_department_display }}
           </p>
         </div>
         <div class="flex-shrink-0">
           <a href="mailto:{{ buddy_assignment.buddy.email }}"
-             class="px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/20
-                    text-violet-400 text-xs font-medium hover:bg-violet-500/20 transition-all">
+             class="px-3 py-2 rounded-xl bg-navy-50 border border-navy-200
+                    text-navy-600 text-xs font-medium hover:bg-navy-100 transition-all">
             {% translate "Contacter" %}
           </a>
         </div>
@@ -67,7 +67,7 @@
     <!-- TIMELINE VERTICALE -->
     <div class="relative">
       <!-- Ligne verticale de la timeline -->
-      <div class="absolute left-6 top-0 bottom-0 w-px bg-white/5"></div>
+      <div class="absolute left-6 top-0 bottom-0 w-px bg-slate-200"></div>
 
       <div class="space-y-6">
         {% for item in steps_data %}
@@ -94,8 +94,8 @@
               {% endif %}
             {% else %}
               <!-- Étape future : cadenas -->
-              <div class="w-4 h-4 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
-                <svg class="w-2 h-2 text-white/20" fill="currentColor" viewBox="0 0 20 20">
+              <div class="w-4 h-4 rounded-full bg-slate-50 border border-slate-200 flex items-center justify-center">
+                <svg class="w-2 h-2 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"/>
                 </svg>
               </div>
@@ -103,8 +103,8 @@
           </div>
 
           <!-- Carte de l'étape -->
-          <div class="glass rounded-2xl p-5 {% if item.is_future %}opacity-50{% endif %}
-                      {% if item.is_today %}border border-blue-500/20 shadow-lg shadow-blue-500/10{% endif %}">
+          <div class="card rounded-xl p-5 {% if item.is_future %}opacity-50{% endif %}
+                      {% if item.is_today %}border border-navy-200 shadow-lg shadow-blue-500/10{% endif %}">
 
             <!-- En-tête étape -->
             <div class="flex items-start justify-between mb-3">
@@ -113,7 +113,7 @@
                   <span class="text-lg">{{ item.step.icon }}</span>
                   <span class="text-xs font-medium uppercase tracking-wider
                     {% if item.is_today %}text-blue-400
-                    {% elif item.is_unlocked %}text-green-400
+                    {% elif item.is_unlocked %}text-emerald-600
                     {% else %}text-white/20{% endif %}">
                     {% if item.is_today %}
                       ✦ {% translate "Aujourd'hui" %}
@@ -124,17 +124,17 @@
                     {% endif %}
                   </span>
                 </div>
-                <h3 class="font-semibold text-white text-sm">{{ item.step.title }}</h3>
+                <h3 class="font-semibold text-navy-700 text-sm">{{ item.step.title }}</h3>
                 {% if item.step.description %}
-                  <p class="text-white/40 text-xs mt-0.5">{{ item.step.description }}</p>
+                  <p class="text-slate-400 text-xs mt-0.5">{{ item.step.description }}</p>
                 {% endif %}
               </div>
               <!-- Compteur tâches -->
               {% if item.tasks_total > 0 %}
               <span class="flex-shrink-0 text-xs px-2 py-1 rounded-lg
-                {% if item.all_done %}bg-green-500/10 text-green-400
-                {% elif item.is_unlocked %}bg-blue-500/10 text-blue-400
-                {% else %}bg-white/5 text-white/20{% endif %}">
+                {% if item.all_done %}bg-emerald-50 text-emerald-600
+                {% elif item.is_unlocked %}bg-navy-50 text-blue-400
+                {% else %}bg-slate-50 text-white/20{% endif %}">
                 {{ item.tasks_done }}/{{ item.tasks_total }}
               </span>
               {% endif %}
@@ -151,9 +151,9 @@
 
                 <!-- Icône type de tâche -->
                 <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-sm
-                  {% if task.task_type == 'READ' %}bg-blue-500/10
+                  {% if task.task_type == 'READ' %}bg-navy-50
                   {% elif task.task_type == 'WATCH' %}bg-red-500/10
-                  {% elif task.task_type == 'MEET' %}bg-violet-500/10
+                  {% elif task.task_type == 'MEET' %}bg-navy-50
                   {% else %}bg-orange-500/10{% endif %}">
                   {% if task.task_type == 'READ' %}📖
                   {% elif task.task_type == 'WATCH' %}🎥
@@ -169,8 +169,8 @@
 
                   <!-- Profile Card pour les tâches MEET -->
                   {% if task.task_type == 'MEET' and task.meet_colleague %}
-                  <div class="mt-2 flex items-center gap-2 p-2 bg-violet-500/5 border border-violet-500/10 rounded-xl">
-                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600
+                  <div class="mt-2 flex items-center gap-2 p-2 bg-violet-500/5 border border-navy-100 rounded-xl">
+                    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-navy-600 to-navy-800
                                 flex items-center justify-center text-xs font-bold text-white">
                       {{ task.meet_colleague.initials }}
                     </div>
@@ -178,12 +178,12 @@
                       <p class="text-xs font-medium text-white/70">
                         {{ task.meet_colleague.get_full_name|default:task.meet_colleague.username }}
                       </p>
-                      <p class="text-xs text-white/30">
+                      <p class="text-xs text-slate-400">
                         {{ task.meet_colleague.job_title|default:task.meet_colleague.get_department_display }}
                       </p>
                     </div>
                     <a href="mailto:{{ task.meet_colleague.email }}"
-                       class="ml-auto text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                       class="ml-auto text-xs text-navy-600 hover:text-violet-300 transition-colors">
                       ✉
                     </a>
                   </div>
@@ -194,17 +194,17 @@
                 {% if not task.pk in completed_ids %}
                 <button onclick="completeTask({{ task.pk }})"
                         class="flex-shrink-0 w-6 h-6 rounded-lg border border-white/10
-                               hover:border-green-500/50 hover:bg-green-500/10
+                               hover:border-green-500/50 hover:bg-emerald-50
                                flex items-center justify-center transition-all duration-200
-                               text-white/20 hover:text-green-400">
+                               text-white/20 hover:text-emerald-600">
                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                   </svg>
                 </button>
                 {% else %}
-                <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/10 border border-green-500/20
+                <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200
                             flex items-center justify-center">
-                  <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                  <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
                   </svg>
                 </div>
@@ -224,7 +224,7 @@
           </div>
         </div>
         {% empty %}
-        <div class="text-center py-16 text-white/30">
+        <div class="text-center py-16 text-slate-400">
           <p class="text-4xl mb-3">🗺️</p>
           <p>{% translate "Aucune étape d'intégration configurée." %}</p>
         </div>
@@ -268,9 +268,9 @@ async function completeTask(taskId) {
         taskEl.classList.remove('bg-white/3', 'border-white/5');
         if (btn) {
           btn.outerHTML = `
-            <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-green-500/10 border border-green-500/20
+            <div class="flex-shrink-0 w-6 h-6 rounded-lg bg-emerald-50 border border-emerald-200
                         flex items-center justify-center">
-              <svg class="w-3 h-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
               </svg>
             </div>`;

@@ -4,27 +4,27 @@
 {% block title %}{{ lesson.title }} — AMN Employee Hub{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#0f0f14] flex flex-col">
+<div class="min-h-screen bg-slate-50 flex flex-col">
 
   <!-- Header -->
-  <header class="border-b border-white/5 px-4 py-4 flex-shrink-0 backdrop-blur-xl bg-[#0f0f14]/80">
+  <header class="border-b border-slate-100 px-4 py-4 flex-shrink-0 backdrop-blur-xl bg-white/80">
     <div class="max-w-3xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-3">
         <a href="{% url 'learning:course_detail' lesson.course.pk %}"
-           class="text-white/40 hover:text-white/70 transition-colors">
+           class="text-slate-400 hover:text-navy-600 transition-colors">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
           </svg>
         </a>
         <div>
-          <p class="text-white/30 text-xs">{{ lesson.course.title }}</p>
-          <h1 class="font-semibold text-white text-sm">{{ lesson.title }}</h1>
+          <p class="text-slate-400 text-xs">{{ lesson.course.title }}</p>
+          <h1 class="font-semibold text-navy-700 text-sm">{{ lesson.title }}</h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <span class="text-xs text-white/30">{{ lesson.duration_minutes }} min</span>
+        <span class="text-xs text-slate-400">{{ lesson.duration_minutes }} min</span>
         {% if progress.is_completed %}
-        <span class="text-xs px-2 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-lg">
+        <span class="text-xs px-2 py-1 bg-emerald-50 border border-emerald-200 text-emerald-600 rounded-lg">
           ✓ {% translate "Terminé" %}
         </span>
         {% endif %}
@@ -34,14 +34,14 @@
 
   <!-- Contenu -->
   <main class="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-    <div class="glass rounded-3xl overflow-hidden mb-6">
+    <div class="card rounded-2xl overflow-hidden mb-6">
 
       <!-- Contenu VIDEO -->
       {% if lesson.content_type == 'VIDEO' and lesson.media_url %}
         {% if low_data %}
-        <div class="p-8 text-center border-b border-white/5">
+        <div class="p-8 text-center border-b border-slate-200">
           <p class="text-4xl mb-3">📵</p>
-          <p class="text-white/50 text-sm">{% translate "Vidéo non disponible en mode Low-Data." %}</p>
+          <p class="text-slate-500 text-sm">{% translate "Vidéo non disponible en mode Low-Data." %}</p>
           <p class="text-white/25 text-xs mt-1">{% translate "Désactivez le mode Low-Data pour accéder à cette vidéo." %}</p>
         </div>
         {% else %}
@@ -57,7 +57,7 @@
 
       <!-- Contenu AUDIO -->
       {% elif lesson.content_type == 'AUDIO' and lesson.media_url %}
-      <div class="p-6 border-b border-white/5">
+      <div class="p-6 border-b border-slate-200">
         <div class="flex items-center gap-4 p-4 bg-white/3 rounded-2xl">
           <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-500/20
                       border border-purple-500/20 flex items-center justify-center text-2xl">
@@ -72,15 +72,15 @@
 
       <!-- Contenu PDF -->
       {% elif lesson.content_type == 'PDF' and lesson.pdf_file %}
-      <div class="p-6 border-b border-white/5">
+      <div class="p-6 border-b border-slate-200">
         <a href="{{ lesson.pdf_file.url }}" target="_blank"
            class="flex items-center gap-4 p-4 bg-white/3 rounded-2xl
-                  hover:bg-white/6 transition-all border border-white/5 hover:border-white/10 group">
+                  hover:bg-white/6 transition-all border border-slate-100 hover:border-slate-200 group">
           <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20
                       flex items-center justify-center text-2xl">📄</div>
           <div>
             <p class="font-medium text-white text-sm">{{ lesson.title }}</p>
-            <p class="text-xs text-white/40">{% translate "Ouvrir le PDF" %}</p>
+            <p class="text-xs text-slate-400">{% translate "Ouvrir le PDF" %}</p>
           </div>
           <svg class="w-5 h-5 text-white/20 group-hover:text-white/50 ml-auto transition-colors"
                fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,8 +105,8 @@
     <div class="flex items-center justify-between gap-4 mb-6">
       {% if prev_lesson %}
       <a href="{% url 'learning:lesson_detail' prev_lesson.pk %}"
-         class="flex items-center gap-2 px-4 py-3 glass rounded-2xl
-                text-sm text-white/50 hover:text-white/80 transition-all hover:bg-white/5">
+         class="flex items-center gap-2 px-4 py-3 card rounded-xl
+                text-sm text-white/50 hover:text-white/80 transition-all hover:bg-slate-50">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
         </svg>
@@ -118,8 +118,8 @@
 
       {% if next_lesson %}
       <a href="{% url 'learning:lesson_detail' next_lesson.pk %}"
-         class="flex items-center gap-2 px-4 py-3 glass rounded-2xl
-                text-sm text-white/50 hover:text-white/80 transition-all hover:bg-white/5">
+         class="flex items-center gap-2 px-4 py-3 card rounded-xl
+                text-sm text-white/50 hover:text-white/80 transition-all hover:bg-slate-50">
         <span class="truncate max-w-[140px]">{{ next_lesson.title }}</span>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
@@ -135,16 +135,16 @@
     <form method="post">
       {% csrf_token %}
       <button type="submit"
-              class="btn-primary w-full py-4 rounded-2xl text-sm font-semibold text-white">
+              class="btn-primary w-full py-4 rounded-2xl text-sm font-semibold text-navy-700">
         ✓ {% translate "Marquer comme terminé et continuer" %}
       </button>
     </form>
     {% else %}
-    <div class="flex items-center justify-center gap-2 py-4 bg-green-500/10 border border-green-500/20 rounded-2xl">
-      <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+    <div class="flex items-center justify-center gap-2 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl">
+      <svg class="w-5 h-5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
         <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
       </svg>
-      <span class="text-green-400 text-sm font-medium">{% translate "Leçon terminée" %}</span>
+      <span class="text-emerald-600 text-sm font-medium">{% translate "Leçon terminée" %}</span>
     </div>
     {% endif %}
 

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Présences du jour" %} — AMN Employee Hub{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Header -->
+  <header class="bg-white border-b border-slate-200 px-4 py-4 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="{% url 'dashboard:home' %}" class="text-slate-400 hover:text-navy-600 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <h1 class="font-bold text-navy-700">{% translate "Présences du jour" %}</h1>
+          <p class="text-xs text-slate-400">{{ today|date:"l d F Y" }}</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- ─── KPI ──────────────────────────────────────────────────────────── -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+            <svg class="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-2xl font-bold text-navy-700">{{ present_count }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{% translate "Présents" %}</p>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-lg bg-amber-50 border border-amber-100 flex items-center justify-center">
+            <svg class="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-2xl font-bold text-navy-700">{{ late_count }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{% translate "Retards" %}</p>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center">
+            <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-2xl font-bold text-navy-700">{{ absent_count }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{% translate "Absents" %}</p>
+      </div>
+
+      <div class="card p-5">
+        <div class="flex items-center gap-3 mb-2">
+          <div class="w-8 h-8 rounded-lg bg-pink-50 border border-pink-100 flex items-center justify-center">
+            <svg class="w-4 h-4 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+        <p class="text-2xl font-bold text-navy-700">{{ suspicious_count }}</p>
+        <p class="text-xs text-slate-400 mt-0.5">{% translate "Suspects" %}</p>
+      </div>
+    </div>
+
+    <!-- ─── ALERTES SUSPECTES ─────────────────────────────────────────────── -->
+    {% if suspicious_records %}
+    <div class="card p-6 border-pink-200 bg-pink-50/50 animate-slide-up">
+      <div class="flex items-center gap-2 mb-4">
+        <svg class="w-5 h-5 text-pink-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        <h3 class="font-semibold text-pink-800">{% translate "Pointages suspects" %}</h3>
+      </div>
+      <div class="space-y-2">
+        {% for record in suspicious_records %}
+        <div class="flex items-center justify-between bg-white rounded-xl p-3 border border-pink-200">
+          <div>
+            <p class="text-sm font-medium text-slate-700">{{ record.user.get_full_name|default:record.user.username }}</p>
+            <p class="text-xs text-slate-400">{{ record.check_in_time|time:"H:i" }} — {{ record.get_failure_reason_display }}</p>
+          </div>
+          <span class="text-xs text-pink-700 bg-pink-100 px-2.5 py-1 rounded-lg font-medium border border-pink-200">
+            {% translate "Suspect" %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ─── POINTAGES DU JOUR ─────────────────────────────────────────────── -->
+    <div class="card p-6">
+      <h3 class="font-semibold text-navy-700 mb-4">{% translate "Pointages du jour" %}</h3>
+      {% if today_records %}
+      <div class="space-y-2">
+        {% for record in today_records %}
+        <div class="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-navy-600 to-emerald-500
+                        flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {{ record.user.first_name|first|upper }}{{ record.user.last_name|first|upper }}
+            </div>
+            <div>
+              <p class="text-sm font-medium text-slate-700">{{ record.user.get_full_name|default:record.user.username }}</p>
+              <p class="text-xs text-slate-400">
+                {{ record.check_in_time|time:"H:i" }}
+                {% if record.office %} — {{ record.office.name }}{% endif %}
+                {% if record.distance_meters %} ({{ record.distance_meters|floatformat:0 }}m){% endif %}
+              </p>
+            </div>
+          </div>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold border
+            {% if record.status == 'PRESENT' %}bg-emerald-50 text-emerald-700 border-emerald-200
+            {% elif record.status == 'LATE' %}bg-amber-50 text-amber-700 border-amber-200
+            {% elif record.status == 'SUSPICIOUS' %}bg-pink-50 text-pink-700 border-pink-200
+            {% else %}bg-red-50 text-red-700 border-red-200{% endif %}">
+            {{ record.get_status_display }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-sm text-slate-400 text-center py-6">{% translate "Aucun pointage pour aujourd'hui." %}</p>
+      {% endif %}
+    </div>
+
+    <!-- ─── ABSENTS ────────────────────────────────────────────────────────── -->
+    {% if absent_employees %}
+    <div class="card p-6">
+      <h3 class="font-semibold text-navy-700 mb-4">
+        {% translate "Absents" %} ({{ absent_count }})
+      </h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {% for employee in absent_employees %}
+        <div class="flex items-center gap-3 py-2.5 px-3 rounded-xl border border-red-100 bg-red-50/50">
+          <div class="w-7 h-7 rounded-lg bg-red-100 border border-red-200
+                      flex items-center justify-center text-xs font-bold text-red-600 flex-shrink-0">
+            {{ employee.first_name|first|upper }}{{ employee.last_name|first|upper }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-medium text-slate-700 truncate">{{ employee.get_full_name|default:employee.username }}</p>
+            <p class="text-xs text-slate-400 truncate">{{ employee.get_department_display }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
