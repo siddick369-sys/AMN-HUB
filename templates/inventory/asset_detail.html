@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ asset.tag_amn }} — {% trans "Détail Actif" %} — AMN Hub{% endblock %}
+
+{% block content %}
+{% load i18n %}
+
+<div class="min-h-screen bg-slate-50">
+
+  <div class="bg-white border-b border-slate-200">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center gap-4">
+        <a href="{% url 'inventory:my_assets' %}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+          <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-sm font-bold text-navy-500 bg-navy-50 px-2.5 py-1 rounded-lg">{{ asset.tag_amn }}</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-medium
+              {% if asset.status == 'AVAILABLE' %}bg-emerald-50 text-emerald-700
+              {% elif asset.status == 'ASSIGNED' %}bg-blue-50 text-blue-700
+              {% elif asset.status == 'IN_REPAIR' %}bg-amber-50 text-amber-700
+              {% else %}bg-slate-100 text-slate-500{% endif %}">
+              {{ asset.get_status_display }}
+            </span>
+          </div>
+          <h1 class="text-xl font-bold text-navy-700 mt-1">{{ asset.name }}</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+
+    <!-- Asset Info -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="font-semibold text-navy-700 mb-4">{% trans "Informations" %}</h2>
+      <div class="grid grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">{% trans "Catégorie" %}</p>
+          <p class="font-medium text-navy-700">{{ asset.get_category_display }}</p>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">{% trans "Marque / Modèle" %}</p>
+          <p class="font-medium text-navy-700">{{ asset.brand }} {{ asset.model_name }}</p>
+        </div>
+        {% if asset.serial_number %}
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">{% trans "N° de série" %}</p>
+          <p class="font-mono text-sm text-navy-700">{{ asset.serial_number }}</p>
+        </div>
+        {% endif %}
+        {% if asset.purchase_date %}
+        <div>
+          <p class="text-xs text-slate-400 mb-0.5">{% trans "Date d'achat" %}</p>
+          <p class="font-medium text-navy-700">{{ asset.purchase_date|date:"d/m/Y" }}</p>
+        </div>
+        {% endif %}
+        {% if asset.assigned_to %}
+        <div class="col-span-2">
+          <p class="text-xs text-slate-400 mb-0.5">{% trans "Attribué à" %}</p>
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-navy-100 flex items-center justify-center">
+              <span class="text-xs font-bold text-navy-600">{{ asset.assigned_to.initials }}</span>
+            </div>
+            <p class="font-medium text-navy-700">{{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% if asset.notes %}
+      <div class="mt-4 pt-4 border-t border-slate-100">
+        <p class="text-xs text-slate-400 mb-1">{% trans "Notes" %}</p>
+        <p class="text-sm text-slate-600">{{ asset.notes }}</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Transfer Form (for current owner) -->
+    {% if asset.assigned_to == request.user %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+      <h2 class="font-semibold text-navy-700 mb-1">{% trans "Transférer cet actif" %}</h2>
+      <p class="text-xs text-slate-400 mb-4">{% trans "Passez cet équipement à un collègue. Le transfert sera journalisé." %}</p>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="transfer" value="1">
+        <div class="space-y-4">
+          {% for field in transfer_form %}
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 mb-1.5">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="text-xs text-red-500 mt-1">{{ field.errors|join:", " }}</p>{% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="mt-4 w-full py-3 rounded-xl btn-primary font-semibold text-sm">
+          {% trans "Confirmer le transfert" %}
+        </button>
+      </form>
+    </div>
+    {% endif %}
+
+    <!-- Transfer History -->
+    {% if transfer_history %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="px-5 py-4 border-b border-slate-100">
+        <h2 class="font-semibold text-navy-700">{% trans "Historique des transferts" %}</h2>
+      </div>
+      <div class="divide-y divide-slate-100">
+        {% for t in transfer_history %}
+        <div class="flex items-center gap-4 px-5 py-3">
+          <div class="w-1.5 h-1.5 rounded-full bg-slate-400 flex-shrink-0"></div>
+          <div class="flex-1">
+            <p class="text-sm text-slate-700">
+              {{ t.from_employee.get_full_name|default:t.from_employee.username|default:"—" }}
+              <span class="text-slate-400">→</span>
+              <span class="font-medium">{{ t.to_employee.get_full_name|default:t.to_employee.username|default:"—" }}</span>
+            </p>
+            {% if t.notes %}<p class="text-xs text-slate-400 mt-0.5">{{ t.notes }}</p>{% endif %}
+          </div>
+          <span class="text-xs text-slate-400 flex-shrink-0">{{ t.transferred_at|date:"d/m/Y H:i" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endblock %}

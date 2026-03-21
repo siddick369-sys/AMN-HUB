@@ -1,0 +1,488 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% trans "Entrepôt — Stock & Actifs" %} — AMN Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+  .tab-btn { transition: all 0.2s; }
+  .tab-btn.active {
+    background: linear-gradient(135deg, #1e3a5f, #254f85);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(30,58,95,0.25);
+  }
+  .stock-row { transition: background 0.15s; }
+  .stock-row:hover { background: #f8fafc; }
+  .qty-btn {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 18px;
+    transition: all 0.15s;
+    cursor: pointer;
+    border: none;
+  }
+  .qty-btn-plus { background: #d1fae5; color: #047857; }
+  .qty-btn-plus:hover { background: #10b981; color: #fff; }
+  .qty-btn-minus { background: #fee2e2; color: #b91c1c; }
+  .qty-btn-minus:hover { background: #ef4444; color: #fff; }
+  .progress-track {
+    height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% load i18n %}
+
+<!-- QR Scan Modal -->
+<div id="qrModal" style="display:none;" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 animate-slide-up">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-navy-700">{% trans "Scanner un QR Code" %}</h3>
+      <button onclick="stopQRScan()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+        <svg class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <div id="qrReader" class="rounded-2xl overflow-hidden bg-slate-100" style="height:240px;"></div>
+    <div id="qrResult" class="mt-4 hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700"></div>
+  </div>
+</div>
+
+<!-- Add Stock Item Modal -->
+<div id="addStockModal" style="display:none;" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full animate-slide-up max-h-screen overflow-y-auto">
+    <div class="px-6 pt-6 pb-4 border-b border-slate-100 flex items-center justify-between">
+      <h3 class="font-bold text-navy-700">{% trans "Ajouter un article" %}</h3>
+      <button onclick="document.getElementById('addStockModal').style.display='none'" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+        <svg class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <form method="post" action="{% url 'inventory:stock_create' %}" class="p-6 space-y-4">
+      {% csrf_token %}
+      {% for field in stock_form %}
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<p class="text-xs text-red-500 mt-1">{{ field.errors|join:", " }}</p>{% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="w-full py-3 rounded-xl btn-primary font-semibold text-sm">{% trans "Créer l'article" %}</button>
+    </form>
+  </div>
+</div>
+
+<div class="min-h-screen bg-slate-50">
+
+  <!-- Header -->
+  <div class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+      <div class="flex items-center gap-4 flex-wrap justify-between">
+        <div class="flex items-center gap-3">
+          <a href="{% url 'inventory:dashboard' %}" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors">
+            <svg class="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </a>
+          <div>
+            <h1 class="text-xl font-bold text-navy-700">{% trans "Entrepôt — Warehouse" %}</h1>
+            <p class="text-xs text-slate-400">{% trans "Stock global & gestion des actifs" %}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="startQRScan()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+            </svg>
+            QR
+          </button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="flex gap-2 mt-4">
+        <a href="?tab=stock"
+           class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold {% if tab == 'stock' %}active{% else %}border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+            {% trans "Stock Global" %}
+            {% if low_stock_count > 0 %}<span class="bg-orange-400 text-white text-xs px-1.5 py-0.5 rounded-full">{{ low_stock_count }}</span>{% endif %}
+          </span>
+        </a>
+        <a href="?tab=assets"
+           class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold {% if tab == 'assets' %}active{% else %}border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+          <span class="flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+            </svg>
+            {% trans "Actifs" %}
+          </span>
+        </a>
+        <a href="?tab=history"
+           class="tab-btn px-5 py-2.5 rounded-xl text-sm font-semibold {% if tab == 'history' %}active{% else %}border border-slate-200 text-slate-600 hover:bg-slate-50{% endif %}">
+          {% trans "Historique" %}
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- ══ TAB : STOCK GLOBAL ══ -->
+    {% if tab == 'stock' %}
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-semibold text-navy-700">{% trans "Consommables & Articles" %}</h2>
+      <button onclick="document.getElementById('addStockModal').style.display='flex'"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl btn-primary text-sm font-semibold">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        {% trans "Ajouter un article" %}
+      </button>
+    </div>
+
+    {% if stock_items %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="bg-slate-50 border-b border-slate-200">
+              <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-5 py-3">{% trans "Article" %}</th>
+              <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">{% trans "Catégorie" %}</th>
+              <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">{% trans "Quantité" %}</th>
+              <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">{% trans "Niveau" %}</th>
+              <th class="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">{% trans "Emplacement" %}</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in stock_items %}
+            <tr class="stock-row border-b border-slate-100 last:border-0" id="stock-row-{{ item.pk }}">
+              <td class="px-5 py-4">
+                <div>
+                  <p class="font-semibold text-navy-700 text-sm">{{ item.name }}</p>
+                  {% if item.sku %}<p class="text-xs text-slate-400">SKU: {{ item.sku }}</p>{% endif %}
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <span class="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-lg">{{ item.category|default:"—" }}</span>
+              </td>
+              <td class="px-4 py-4">
+                <div class="flex items-center gap-2">
+                  <button class="qty-btn qty-btn-minus" onclick="quickUpdate({{ item.pk }}, -1)" title="-1">−</button>
+                  <span id="qty-{{ item.pk }}" class="text-sm font-bold text-navy-700 w-12 text-center
+                    {% if item.is_empty %}text-red-600{% elif item.is_low_stock %}text-orange-600{% endif %}">
+                    {{ item.quantity }}
+                  </span>
+                  <button class="qty-btn qty-btn-plus" onclick="quickUpdate({{ item.pk }}, +1)" title="+1">+</button>
+                  <span class="text-xs text-slate-400">{{ item.unit }}</span>
+                </div>
+              </td>
+              <td class="px-4 py-4">
+                <div class="min-w-24">
+                  <div class="progress-track">
+                    <div id="progress-{{ item.pk }}" class="progress-fill
+                      {% if item.stock_level == 'empty' %}bg-red-400
+                      {% elif item.stock_level == 'low' %}bg-orange-400
+                      {% elif item.stock_level == 'medium' %}bg-amber-400
+                      {% else %}bg-emerald-400{% endif %}"
+                      style="width:{{ item.stock_percentage }}%"></div>
+                  </div>
+                  <div class="flex justify-between mt-1">
+                    <span id="level-{{ item.pk }}" class="text-xs
+                      {% if item.stock_level == 'empty' %}text-red-500
+                      {% elif item.stock_level == 'low' %}text-orange-500
+                      {% elif item.stock_level == 'medium' %}text-amber-500
+                      {% else %}text-emerald-600{% endif %}">
+                      {% if item.is_empty %}{% trans "Vide" %}
+                      {% elif item.is_low_stock %}{% trans "Stock bas" %}
+                      {% else %}{% trans "OK" %}{% endif %}
+                    </span>
+                    <span class="text-xs text-slate-400">min: {{ item.alert_threshold }}</span>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-4 text-xs text-slate-500">{{ item.location|default:"—" }}</td>
+              <td class="px-4 py-4">
+                <button onclick="openBulkModal({{ item.pk }}, '{{ item.name|escapejs }}')"
+                        class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                  {% trans "Mouvement" %}
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400">
+      <svg class="w-12 h-12 mx-auto mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+      </svg>
+      <p>{% trans "Aucun article de stock. Cliquez sur « Ajouter un article » pour commencer." %}</p>
+    </div>
+    {% endif %}
+
+    {% endif %}
+
+    <!-- ══ TAB : ASSETS ══ -->
+    {% if tab == 'assets' %}
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="font-semibold text-navy-700">{% trans "Actifs de l'entreprise" %}</h2>
+      <form method="post" action="{% url 'inventory:asset_create' %}" id="assetCreateForm" style="display:none">
+        {% csrf_token %}
+        {% for field in asset_form %}{{ field }}{% endfor %}
+      </form>
+    </div>
+
+    {% if assets %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for asset in assets %}
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow">
+        <div class="flex items-start justify-between mb-3">
+          <div>
+            <span class="text-xs font-mono font-semibold text-navy-500 bg-navy-50 px-2 py-0.5 rounded-lg">{{ asset.tag_amn }}</span>
+            <h3 class="font-semibold text-navy-700 mt-1.5 text-sm">{{ asset.name }}</h3>
+            <p class="text-xs text-slate-400">{{ asset.brand }} {{ asset.model_name }}</p>
+          </div>
+          <span class="text-xs px-2 py-1 rounded-lg font-medium
+            {% if asset.status == 'AVAILABLE' %}bg-emerald-50 text-emerald-700
+            {% elif asset.status == 'ASSIGNED' %}bg-blue-50 text-blue-700
+            {% elif asset.status == 'IN_REPAIR' %}bg-amber-50 text-amber-700
+            {% else %}bg-slate-100 text-slate-500{% endif %}">
+            {{ asset.get_status_display }}
+          </span>
+        </div>
+        {% if asset.assigned_to %}
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+          <div class="w-6 h-6 rounded-full bg-navy-100 flex items-center justify-center flex-shrink-0">
+            <span class="text-xs font-bold text-navy-600">{{ asset.assigned_to.initials }}</span>
+          </div>
+          <span class="text-xs text-slate-500">{{ asset.assigned_to.get_full_name|default:asset.assigned_to.username }}</span>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400">
+      <p>{% trans "Aucun actif enregistré." %}</p>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- ══ TAB : HISTORY ══ -->
+    {% if tab == 'history' %}
+    <h2 class="font-semibold text-navy-700 mb-4">{% trans "20 Derniers Mouvements de Stock" %}</h2>
+    {% if recent_transactions %}
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="divide-y divide-slate-100">
+        {% for tx in recent_transactions %}
+        <div class="flex items-center gap-4 px-5 py-3.5">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0
+            {% if tx.transaction_type == 'IN' %}bg-emerald-50{% else %}bg-red-50{% endif %}">
+            <span class="text-base {% if tx.transaction_type == 'IN' %}text-emerald-600{% else %}text-red-500{% endif %}">
+              {% if tx.transaction_type == 'IN' %}↑{% else %}↓{% endif %}
+            </span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-navy-700">{{ tx.item.name }}</p>
+            <p class="text-xs text-slate-400">
+              {% if tx.transaction_type == 'IN' %}{% trans "Entrée" %}{% else %}{% trans "Sortie" %}{% endif %} ·
+              {{ tx.quantity }} {{ tx.item.unit }} ·
+              {{ tx.timestamp|date:"d/m H:i" }}
+            </p>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-bold {% if tx.transaction_type == 'IN' %}text-emerald-600{% else %}text-red-500{% endif %}">
+              {% if tx.transaction_type == 'IN' %}+{% else %}-{% endif %}{{ tx.quantity }}
+            </span>
+            <p class="text-xs text-slate-400">{{ tx.quantity_before }} → {{ tx.quantity_after }}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="bg-white rounded-2xl border border-slate-200 p-16 text-center text-slate-400">
+      <p>{% trans "Aucun mouvement enregistré." %}</p>
+    </div>
+    {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Bulk Update Modal -->
+<div id="bulkModal" style="display:none;" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+  <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 animate-slide-up">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-bold text-navy-700" id="bulkModalTitle">{% trans "Mouvement de stock" %}</h3>
+      <button onclick="document.getElementById('bulkModal').style.display='none'" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center">
+        <svg class="w-4 h-4 text-slate-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+      </button>
+    </div>
+    <div class="flex gap-3 mb-4">
+      <button id="bulkTypeIn" onclick="setBulkType('in')"
+              class="flex-1 py-2 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-700 font-semibold text-sm transition-all">
+        ↑ {% trans "Entrée" %}
+      </button>
+      <button id="bulkTypeOut" onclick="setBulkType('out')"
+              class="flex-1 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-500 font-semibold text-sm transition-all">
+        ↓ {% trans "Sortie" %}
+      </button>
+    </div>
+    <div class="mb-4">
+      <label class="text-xs font-semibold text-slate-600 mb-1.5 block">{% trans "Quantité" %}</label>
+      <input type="number" id="bulkQty" min="1" value="1"
+             class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+    </div>
+    <div class="mb-5">
+      <label class="text-xs font-semibold text-slate-600 mb-1.5 block">{% trans "Motif" %} ({% trans "optionnel" %})</label>
+      <input type="text" id="bulkReason" placeholder="{% trans 'Motif du mouvement…' %}"
+             class="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent">
+    </div>
+    <button onclick="submitBulk()" class="w-full py-3 rounded-xl btn-emerald font-semibold text-sm">
+      {% trans "Valider le mouvement" %}
+    </button>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF = '{{ csrf_token }}';
+const QR_URL = '{% url "inventory:qr_lookup" %}';
+const QUICK_URL = '{% url "inventory:stock_quick_update" %}';
+let bulkItemId = null;
+let bulkType = 'in';
+
+// ── Quick Update (+/-) ──────────────────────────────────────────────────────
+async function quickUpdate(itemId, delta) {
+  const r = await fetch(QUICK_URL, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item_id: itemId, delta, reason: '' }),
+  });
+  const data = await r.json();
+  if (data.success) refreshRow(itemId, data);
+  else alert(data.error || '{% trans "Erreur" %}');
+}
+
+function refreshRow(id, data) {
+  const qtyEl = document.getElementById('qty-' + id);
+  const progressEl = document.getElementById('progress-' + id);
+  const levelEl = document.getElementById('level-' + id);
+  if (qtyEl) qtyEl.textContent = data.new_quantity;
+  if (progressEl) {
+    progressEl.style.width = data.stock_percentage + '%';
+    progressEl.className = 'progress-fill ' + {
+      empty: 'bg-red-400', low: 'bg-orange-400', medium: 'bg-amber-400', ok: 'bg-emerald-400'
+    }[data.stock_level];
+  }
+  if (levelEl) {
+    const labels = {
+      empty: '{% trans "Vide" %}', low: '{% trans "Stock bas" %}',
+      medium: '{% trans "Moyen" %}', ok: '{% trans "OK" %}'
+    };
+    levelEl.textContent = labels[data.stock_level] || '';
+    levelEl.className = 'text-xs ' + {
+      empty: 'text-red-500', low: 'text-orange-500', medium: 'text-amber-500', ok: 'text-emerald-600'
+    }[data.stock_level];
+  }
+}
+
+// ── Bulk Modal ───────────────────────────────────────────────────────────────
+function openBulkModal(id, name) {
+  bulkItemId = id;
+  document.getElementById('bulkModalTitle').textContent = name;
+  document.getElementById('bulkModal').style.display = 'flex';
+  setBulkType('in');
+}
+
+function setBulkType(t) {
+  bulkType = t;
+  const inBtn = document.getElementById('bulkTypeIn');
+  const outBtn = document.getElementById('bulkTypeOut');
+  if (t === 'in') {
+    inBtn.className = 'flex-1 py-2 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-emerald-700 font-semibold text-sm';
+    outBtn.className = 'flex-1 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-500 font-semibold text-sm';
+  } else {
+    inBtn.className = 'flex-1 py-2 rounded-xl bg-slate-50 border-2 border-slate-200 text-slate-500 font-semibold text-sm';
+    outBtn.className = 'flex-1 py-2 rounded-xl bg-red-50 border-2 border-red-400 text-red-700 font-semibold text-sm';
+  }
+}
+
+async function submitBulk() {
+  const qty = parseInt(document.getElementById('bulkQty').value);
+  const reason = document.getElementById('bulkReason').value;
+  if (!qty || qty < 1) return alert('{% trans "Quantité invalide" %}');
+  const delta = bulkType === 'in' ? qty : -qty;
+  const r = await fetch(QUICK_URL, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ item_id: bulkItemId, delta, reason }),
+  });
+  const data = await r.json();
+  if (data.success) {
+    refreshRow(bulkItemId, data);
+    document.getElementById('bulkModal').style.display = 'none';
+  } else {
+    alert(data.error || '{% trans "Erreur" %}');
+  }
+}
+
+// ── QR Scanner (html5-qrcode) ────────────────────────────────────────────────
+let qrScanner = null;
+
+function startQRScan() {
+  document.getElementById('qrModal').style.display = 'flex';
+  if (typeof Html5Qrcode !== 'undefined') {
+    qrScanner = new Html5Qrcode('qrReader');
+    qrScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 200, height: 200 } },
+      async (decodedText) => {
+        await qrScanner.stop();
+        lookupQR(decodedText);
+      },
+      () => {}
+    ).catch(err => {
+      document.getElementById('qrResult').textContent = '{% trans "Caméra indisponible : " %}' + err;
+      document.getElementById('qrResult').classList.remove('hidden');
+    });
+  }
+}
+
+function stopQRScan() {
+  if (qrScanner) { qrScanner.stop().catch(() => {}); qrScanner = null; }
+  document.getElementById('qrModal').style.display = 'none';
+}
+
+async function lookupQR(tag) {
+  const r = await fetch(QR_URL, {
+    method: 'POST',
+    headers: { 'X-CSRFToken': CSRF, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tag }),
+  });
+  const data = await r.json();
+  const resultEl = document.getElementById('qrResult');
+  resultEl.classList.remove('hidden');
+  if (data.success) {
+    resultEl.className = 'mt-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700';
+    resultEl.innerHTML = `<strong>${data.asset.name}</strong> (${data.asset.tag_amn})<br>
+      ${data.asset.category} — ${data.asset.status}<br>
+      ${data.asset.assigned_to ? '👤 ' + data.asset.assigned_to : '{% trans "Non attribué" %}'}`;
+  } else {
+    resultEl.className = 'mt-4 p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600';
+    resultEl.textContent = data.error;
+  }
+}
+</script>
+<!-- html5-qrcode (QR Scanner) -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
+{% endblock %}

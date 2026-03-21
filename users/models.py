@@ -184,6 +184,13 @@ class Employee(AbstractUser):
         verbose_name=_('Token MDP créé le')
     )
 
+    # ── Tutoriel Inventory ──
+    has_seen_inventory_tutorial = models.BooleanField(
+        default=False,
+        verbose_name=_('Tutoriel inventaire vu'),
+        help_text=_('True si l\'employé a déjà vu le tutoriel du module Inventaire')
+    )
+
     # ── Métadonnées ──
     updated_at = models.DateTimeField(
         auto_now=True,

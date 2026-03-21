@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     'users',
     'learning',
     'attendance',
+    'inventory',
 ]
 
 # ─────────────────────────────────────────────

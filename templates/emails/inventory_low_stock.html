@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alerte Stock Bas — AMN Hub</title>
+</head>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+          <!-- Header orange -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#f59e0b,#d97706);padding:32px 32px 24px;">
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td>
+                    <p style="margin:0;color:rgba(255,255,255,0.8);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;">AMN Employee Hub</p>
+                    <h1 style="margin:8px 0 0;color:#fff;font-size:22px;font-weight:700;">⚠ Alerte Stock Bas</h1>
+                  </td>
+                  <td align="right">
+                    <div style="width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                      <span style="font-size:24px;">📦</span>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="padding:28px 32px;">
+              <p style="margin:0 0 20px;color:#475569;font-size:15px;line-height:1.6;">
+                Le stock de l'article suivant a atteint son seuil d'alerte et nécessite un réapprovisionnement urgent.
+              </p>
+
+              <!-- Item Card -->
+              <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:12px;padding:20px;margin-bottom:24px;">
+                <p style="margin:0 0 8px;font-size:18px;font-weight:700;color:#92400e;">{{ item.name }}</p>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr>
+                    <td style="padding:4px 0;">
+                      <span style="color:#78716c;font-size:13px;">Quantité actuelle :</span>
+                      <strong style="color:#dc2626;font-size:15px;margin-left:8px;">{{ item.quantity }} {{ item.unit }}</strong>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:4px 0;">
+                      <span style="color:#78716c;font-size:13px;">Seuil d'alerte :</span>
+                      <strong style="color:#92400e;font-size:13px;margin-left:8px;">{{ item.alert_threshold }} {{ item.unit }}</strong>
+                    </td>
+                  </tr>
+                  {% if item.location %}
+                  <tr>
+                    <td style="padding:4px 0;">
+                      <span style="color:#78716c;font-size:13px;">Emplacement :</span>
+                      <strong style="color:#44403c;font-size:13px;margin-left:8px;">{{ item.location }}</strong>
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% if item.supplier %}
+                  <tr>
+                    <td style="padding:4px 0;">
+                      <span style="color:#78716c;font-size:13px;">Fournisseur :</span>
+                      <strong style="color:#44403c;font-size:13px;margin-left:8px;">{{ item.supplier }}</strong>
+                    </td>
+                  </tr>
+                  {% endif %}
+                </table>
+              </div>
+
+              <!-- CTA -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center">
+                    <a href="{{ frontend_url }}/inventory/warehouse/?tab=stock"
+                       style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#254f85);color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:14px 28px;border-radius:12px;">
+                      Gérer le stock →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0;color:#94a3b8;font-size:12px;text-align:center;">
+                AMN Employee Hub · Africa Mobile Networks<br>
+                Ce message est envoyé automatiquement — ne pas répondre.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

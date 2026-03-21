@@ -24,6 +24,7 @@ urlpatterns += i18n_patterns(
     path('dashboard/', include('users.dashboard_urls', namespace='dashboard')),
     path('learning/', include('learning.urls', namespace='learning')),
     path('attendance/', include('attendance.urls', namespace='attendance')),
+    path('inventory/', include('inventory.urls', namespace='inventory')),
     prefix_default_language=False,
 )
 
