@@ -63,11 +63,61 @@
     background: #f1f5f9 !important;
     color: #475569 !important;
   }
+
+  /* Custom Confirmation Modal */
+  #tour-welcome-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  #tour-welcome-modal.active { display: flex; animation: fadeIn 0.3s ease; }
+  .modal-card {
+    background: white;
+    width: 100%;
+    max-width: 440px;
+    border-radius: 2rem;
+    padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  #tour-welcome-modal.active .modal-card { transform: translateY(0); }
 </style>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 {% endblock %}
 
 {% block content %}
+<!-- Premium Welcome Modal -->
+<div id="tour-welcome-modal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="w-20 h-20 bg-navy-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+      <span class="text-4xl">🧭</span>
+    </div>
+    <h2 class="text-2xl font-black text-navy-900 mb-3 tracking-tight">{% translate "Prêt pour la visite ?" %}</h2>
+    <p class="text-slate-500 mb-8 leading-relaxed">
+      {% translate "Bienvenue dans votre espace de croissance AMN. Laissez-nous vous guider pour maîtriser vos outils en quelques secondes." %}
+    </p>
+    <div class="flex flex-col gap-3">
+      <button onclick="acceptTour()" 
+              class="w-full py-4 bg-navy-700 text-white rounded-2xl font-bold hover:bg-navy-800 transition-all shadow-lg hover:shadow-navy-200/50">
+        {% translate "C'est parti !" %}
+      </button>
+      <button onclick="closeWelcomeModal()" 
+              class="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-bold hover:bg-slate-100 transition-all">
+        {% translate "Plus tard" %}
+      </button>
+    </div>
+  </div>
+</div>
+
 <div class="min-h-screen bg-slate-50">
 
   <!-- ── HEADER ──────────────────────────────────────────────────────────── -->
@@ -331,6 +381,7 @@ async function toggleLowData() {
 
 // ── TOUR GUIDÉ (DRIVER.JS) ───────────────────────────────────────────────────
 function startGuidedTour() {
+  document.body.classList.add('tour-started');
   const driver = window.driver.js.driver;
   const driverObj = driver({
     showProgress: true,
@@ -414,12 +465,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function startWelcomeModal() {
-    // On pourrait utiliser une modal custom AMN ici avant de lancer Driver.js
-    // Pour cet exercice, on lance Driver.js directement ou une simple confirmation
-    if (confirm('{% translate "Bienvenue dans votre espace de croissance AMN. Souhaitez-vous une visite guidée pour maîtriser vos outils ?" %}')) {
-        startGuidedTour();
-    } else {
-        finishTour(); // Marqué comme vu quand même s'ils refusent
+    document.getElementById('tour-welcome-modal').classList.add('active');
+}
+
+function acceptTour() {
+    closeWelcomeModal();
+    startGuidedTour();
+}
+
+function closeWelcomeModal() {
+    document.getElementById('tour-welcome-modal').classList.remove('active');
+    // Si on ferme sans accepter, on marque quand même comme vu (ou pas, selon la préférence)
+    // Ici on marque comme vu pour ne pas harceler l'utilisateur
+    if (!document.body.classList.contains('tour-started')) {
+        finishTour();
     }
 }
 </script>
