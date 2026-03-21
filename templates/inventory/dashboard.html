@@ -5,275 +5,73 @@
 
 {% block extra_head %}
 <style>
-  /* ── Tutorial Modal Overlay ── */
-  .tutorial-backdrop {
-    position: fixed; inset: 0; z-index: 9999;
-    background: rgba(15,23,42,0.55);
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-    animation: fadeIn 0.3s ease;
+  /* Premium Driver.js Overrides */
+  .driver-popover {
+    border-radius: 1.5rem !important;
+    padding: 1.5rem !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 20px 50px rgba(30,58,95,0.15) !important;
+    max-width: 320px !important;
   }
-  .tutorial-modal {
-    background: #fff;
-    border-radius: 1.5rem;
-    box-shadow: 0 25px 80px rgba(0,0,0,0.25);
-    max-width: 480px; width: 100%;
-    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    overflow: hidden;
+  .driver-popover-title {
+    font-size: 1.125rem !important;
+    font-weight: 800 !important;
+    color: #1e3a5f !important;
+    margin-bottom: 0.5rem !important;
   }
-  .tutorial-progress-bar {
-    height: 4px;
-    background: #e2e8f0;
-    border-radius: 2px;
-    overflow: hidden;
+  .driver-popover-description {
+    color: #64748b !important;
+    line-height: 1.6 !important;
   }
-  .tutorial-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #1e3a5f, #10b981);
-    transition: width 0.4s ease;
-    border-radius: 2px;
+  .driver-popover-next-btn, .driver-popover-prev-btn {
+    border-radius: 0.75rem !important;
+    padding: 0.5rem 1rem !important;
+    font-weight: 600 !important;
+    text-shadow: none !important;
   }
+  .driver-popover-next-btn { background: #1e3a5f !important; }
+  .driver-popover-prev-btn { background: #f1f5f9 !important; color: #475569 !important; }
 
-  /* ── Confirm Dialog ── */
-  .confirm-dialog {
-    position: fixed; inset: 0; z-index: 9998;
-    background: rgba(15,23,42,0.5);
-    backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-    animation: fadeIn 0.25s ease;
+  /* Premium Welcome Modal */
+  #tour-welcome-modal {
+    position: fixed; inset: 0; z-index: 10000;
+    display: none; align-items: center; justify-content: center;
+    padding: 1.5rem; background: rgba(15, 23, 42, 0.4);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
   }
-
-  /* ── Stats Cards ── */
-  .stat-card {
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 1.25rem;
-    padding: 1.25rem 1.5rem;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    transition: box-shadow 0.2s, transform 0.2s;
+  #tour-welcome-modal.active { display: flex; animation: fadeIn 0.3s ease; }
+  .modal-card {
+    background: white; width: 100%; max-width: 440px;
+    border-radius: 2rem; padding: 2.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .stat-card:hover {
-    box-shadow: 0 8px 24px rgba(30,58,95,0.1);
-    transform: translateY(-2px);
-  }
-
-  /* ── Module Nav ── */
-  .mod-nav-btn {
-    display: flex; flex-direction: column; align-items: center;
-    gap: 0.5rem; padding: 1.25rem 1rem;
-    background: #fff;
-    border: 2px solid #e2e8f0;
-    border-radius: 1.25rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none; color: inherit;
-  }
-  .mod-nav-btn:hover {
-    border-color: #1e3a5f;
-    background: #f0f5fb;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(30,58,95,0.1);
-  }
-  .mod-nav-btn.danger:hover { border-color: #ef4444; background: #fef2f2; }
+  #tour-welcome-modal.active .modal-card { transform: translateY(0); }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 {% endblock %}
 
 {% block content %}
-{% load i18n %}
-
-<!-- ══════════════════════════════════════════════════════════════════════════
-     TUTORIAL CONFIRM DIALOG
-     ══════════════════════════════════════════════════════════════════════════ -->
-{% if show_tutorial %}
-<div id="confirmTutorialDialog" class="confirm-dialog" role="dialog" aria-modal="true">
-  <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-8 text-center animate-slide-up">
-    <div class="w-16 h-16 bg-navy-50 rounded-full flex items-center justify-center mx-auto mb-5">
-      <svg class="w-8 h-8 text-navy-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-      </svg>
+<!-- Premium Welcome Modal -->
+<div id="tour-welcome-modal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="w-20 h-20 bg-navy-50 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+      <span class="text-4xl">🧭</span>
     </div>
-    <h2 class="text-xl font-bold text-navy-700 mb-2">{% trans "Bienvenue dans le Module Inventaire" %}</h2>
-    <p class="text-slate-500 text-sm mb-7">{% trans "Voulez-vous des explications sur l'utilisation de cette partie ?" %}</p>
-    <div class="flex gap-3">
-      <button onclick="dismissTutorial()" class="flex-1 px-4 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
-        {% trans "Non, merci" %}
+    <h2 class="text-2xl font-black text-navy-900 mb-3 tracking-tight">{% translate "Module Inventaire" %}</h2>
+    <p class="text-slate-500 mb-8 leading-relaxed">
+      {% translate "Gérez vos équipements et stock avec une précision chirurgicale. Souhaitez-vous une visite guidée ?" %}
+    </p>
+    <div class="flex flex-col gap-3">
+      <button onclick="acceptTour()" 
+              class="w-full py-4 bg-navy-700 text-white rounded-2xl font-bold hover:bg-navy-800 transition-all shadow-lg hover:shadow-navy-200/50">
+        {% translate "Oui, montrez-moi !" %}
       </button>
-      <button onclick="startTutorial()" class="flex-1 px-4 py-3 rounded-xl btn-primary text-sm font-semibold">
-        {% trans "Oui, montrez-moi !" %}
-      </button>
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- ══════════════════════════════════════════════════════════════════════════
-     TUTORIAL MODALS (Step-by-Step)
-     ══════════════════════════════════════════════════════════════════════════ -->
-<div id="tutorialBackdrop" class="tutorial-backdrop" style="display:none;" role="dialog" aria-modal="true" aria-label="{% trans 'Tutoriel' %}">
-  <div class="tutorial-modal">
-    <!-- Header -->
-    <div class="bg-gradient-to-r from-navy-700 to-navy-500 px-6 pt-6 pb-4">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-semibold text-emerald-300 uppercase tracking-wider">{% trans "Tutoriel interactif" %}</span>
-        <button onclick="closeTutorial()" class="w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors" title="{% trans 'Passer le tutoriel' %}">
-          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-          </svg>
-        </button>
-      </div>
-      <div class="tutorial-progress-bar">
-        <div id="tutorialProgressFill" class="tutorial-progress-fill" style="width:33%"></div>
-      </div>
-      <div class="flex justify-between mt-1.5">
-        <span id="tutorialStepLabel" class="text-xs text-white/70">{% trans "Étape" %} 1 / 3</span>
-        <button onclick="closeTutorial()" class="text-xs text-white/60 hover:text-white/90 transition-colors">{% trans "Passer" %}</button>
-      </div>
-    </div>
-
-    <!-- Steps Content -->
-    <div id="tutorialContent" class="px-6 py-6">
-
-      <!-- Step 1 : Global Stock -->
-      <div id="step-1" class="tutorial-step">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-bold text-navy-700 text-lg">{% trans "Stock Global" %}</h3>
-            <p class="text-xs text-slate-400">{% trans "Gestion des consommables" %}</p>
-          </div>
-        </div>
-        <p class="text-slate-600 text-sm leading-relaxed mb-4">
-          {% blocktrans %}
-          Le <strong>Stock Global</strong> vous permet de gérer tous les consommables de l'entreprise
-          (papeterie, câbles, cartouches d'encre, etc.).
-          {% endblocktrans %}
-        </p>
-        <ul class="space-y-2 text-sm text-slate-600">
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Chaque article a un seuil d'alerte — une notification orange/rouge s'affiche automatiquement." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Utilisez les boutons + et - pour une mise à jour instantanée du stock." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Chaque mouvement est journalisé dans un audit trail immuable." %}
-          </li>
-        </ul>
-      </div>
-
-      <!-- Step 2 : My Assets -->
-      <div id="step-2" class="tutorial-step" style="display:none;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-bold text-navy-700 text-lg">{% trans "Mes Actifs" %}</h3>
-            <p class="text-xs text-slate-400">{% trans "Matériel personnel & transfert P2P" %}</p>
-          </div>
-        </div>
-        <p class="text-slate-600 text-sm leading-relaxed mb-4">
-          {% blocktrans %}
-          La section <strong>Mes Actifs</strong> liste tout le matériel qui vous est officiellement attribué
-          (ordinateur portable, téléphone, badges, etc.).
-          {% endblocktrans %}
-        </p>
-        <ul class="space-y-2 text-sm text-slate-600">
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Chaque actif possède un Tag AMN unique — scannable par QR code." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Le transfert P2P vous permet de passer un équipement à un collègue en quelques secondes." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-emerald-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Tout l'historique des transferts est conservé et accessible." %}
-          </li>
-        </ul>
-      </div>
-
-      <!-- Step 3 : Helpdesk -->
-      <div id="step-3" class="tutorial-step" style="display:none;">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center flex-shrink-0">
-            <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
-            </svg>
-          </div>
-          <div>
-            <h3 class="font-bold text-navy-700 text-lg">{% trans "Helpdesk SOS" %}</h3>
-            <p class="text-xs text-slate-400">{% trans "Ticket de support & pannes" %}</p>
-          </div>
-        </div>
-        <p class="text-slate-600 text-sm leading-relaxed mb-4">
-          {% blocktrans %}
-          En cas de panne ou problème technique, ouvrez un <strong>Ticket SOS</strong>.
-          L'équipe IT sera immédiatement alertée par email.
-          {% endblocktrans %}
-        </p>
-        <ul class="space-y-2 text-sm text-slate-600">
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Décrivez le problème, ajoutez une photo de la panne si possible." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Choisissez la priorité CRITIQUE pour une intervention urgente." %}
-          </li>
-          <li class="flex items-start gap-2">
-            <span class="mt-0.5 w-5 h-5 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-              <svg class="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-            </span>
-            {% trans "Suivez l'évolution de votre ticket en temps réel." %}
-          </li>
-        </ul>
-      </div>
-
-    </div>
-
-    <!-- Footer Buttons -->
-    <div class="px-6 pb-6 flex gap-3">
-      <button id="tutorialPrevBtn" onclick="tutorialPrev()" style="display:none;"
-              class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50 transition-colors">
-        ← {% trans "Retour" %}
-      </button>
-      <button id="tutorialNextBtn" onclick="tutorialNext()"
-              class="flex-1 px-4 py-3 rounded-xl btn-primary text-sm font-semibold">
-        {% trans "Suivant" %} →
+      <button onclick="closeWelcomeModal()" 
+              class="w-full py-4 bg-slate-50 text-slate-500 rounded-2xl font-bold hover:bg-slate-100 transition-all">
+        {% translate "Non, merci" %}
       </button>
     </div>
   </div>
@@ -294,14 +92,14 @@
         </div>
         <div class="flex items-center gap-3">
           {% if show_tutorial %}
-          <button onclick="startTutorial()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-navy-200 text-navy-600 text-sm font-medium hover:bg-navy-50 transition-colors">
+          <button onclick="startGuidedTour()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-navy-200 text-navy-600 text-sm font-medium hover:bg-navy-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             {% trans "Tutoriel" %}
           </button>
           {% endif %}
-          <a href="{% url 'inventory:helpdesk' %}"
+          <a href="{% url 'inventory:helpdesk' %}" id="sos-ticket-step"
              class="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors shadow-sm">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -320,7 +118,7 @@
     <!-- ── MANAGER DASHBOARD ── -->
 
     <!-- Stats Row -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8" id="inventory-stats-step">
       <div class="stat-card">
         <div class="flex items-center justify-between mb-2">
           <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">{% trans "Actifs Total" %}</span>
@@ -398,7 +196,7 @@
     {% endif %}
 
     <!-- ── NAVIGATION MODULES ── -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8" id="inventory-nav-step">
 
       {% if is_manager %}
       <a href="{% url 'inventory:warehouse' %}" class="mod-nav-btn">
@@ -437,7 +235,7 @@
     </div>
 
     <!-- ── Recent Activity ── -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" id="inventory-activity-step">
 
       <!-- Mes actifs récents -->
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
@@ -522,64 +320,64 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 <script>
 const CSRF = '{{ csrf_token }}';
 const TUTORIAL_URL = '{% url "inventory:tutorial_seen" %}';
-let currentStep = 1;
-const totalSteps = 3;
+const hasSeenTour = {{ show_tutorial|yesno:"false,true" }};
 
-function dismissTutorial() {
-  document.getElementById('confirmTutorialDialog')?.remove();
-  markTutorialSeen();
+function startGuidedTour() {
+  document.body.classList.add('tour-started');
+  const driver = window.driver.js.driver;
+  const driverObj = driver({
+    showProgress: true,
+    overlayColor: '#1e293b',
+    overlayOpacity: 0.6,
+    nextBtnText: '{% trans "Suivant" %} →',
+    prevBtnText: '← {% trans "Précédent" %}',
+    doneBtnText: '{% trans "Terminer" %}',
+    allowClose: false,
+    onDestroyed: () => { finishTour(); },
+    steps: [
+      {
+        element: '#inventory-stats-step',
+        popover: {
+          title: '📊 {% trans "Métatonnées en Temps Réel" %}',
+          description: '{% trans "Visualisez instantanément l’état de vos équipements, les tickets ouverts et les alertes de stock." %}',
+          side: "bottom", align: 'start'
+        }
+      },
+      {
+        element: '#inventory-nav-step',
+        popover: {
+          title: '🚀 {% trans "Navigation Directe" %}',
+          description: '{% trans "Accédez rapidement à l’entrepôt, votre bureau digital ou au Helpdesk selon vos besoins." %}',
+          side: "bottom", align: 'center'
+        }
+      },
+      {
+        element: '#inventory-activity-step',
+        popover: {
+          title: '📑 {% trans "Activités Récentes" %}',
+          description: '{% trans "Gardez un œil sur vos derniers équipements attribués et l’avancée de vos tickets support." %}',
+          side: "top", align: 'center'
+        }
+      },
+      {
+        element: '#sos-ticket-step',
+        popover: {
+          title: '🚨 {% trans "Bouton PANIC" %}',
+          description: '{% trans "Un problème ? Cliquez ici pour ouvrir immédiatement un ticket SOS pour l’équipe informatique." %}',
+          side: "bottom", align: 'end'
+        }
+      }
+    ].filter(step => document.querySelector(step.element) !== null)
+  });
+
+  driverObj.drive();
 }
 
-function startTutorial() {
-  document.getElementById('confirmTutorialDialog')?.remove();
-  document.getElementById('tutorialBackdrop').style.display = 'flex';
-  showStep(1);
-}
-
-function closeTutorial() {
-  document.getElementById('tutorialBackdrop').style.display = 'none';
-  markTutorialSeen();
-}
-
-function showStep(n) {
-  for (let i = 1; i <= totalSteps; i++) {
-    const el = document.getElementById('step-' + i);
-    if (el) el.style.display = i === n ? 'block' : 'none';
-  }
-  currentStep = n;
-  const pct = Math.round((n / totalSteps) * 100);
-  document.getElementById('tutorialProgressFill').style.width = pct + '%';
-  document.getElementById('tutorialStepLabel').textContent =
-    '{% trans "Étape" %} ' + n + ' / ' + totalSteps;
-
-  const prevBtn = document.getElementById('tutorialPrevBtn');
-  const nextBtn = document.getElementById('tutorialNextBtn');
-  if (prevBtn) prevBtn.style.display = n > 1 ? '' : 'none';
-  if (nextBtn) {
-    if (n === totalSteps) {
-      nextBtn.textContent = '{% trans "Terminer" %} ✓';
-    } else {
-      nextBtn.textContent = '{% trans "Suivant" %} →';
-    }
-  }
-}
-
-function tutorialNext() {
-  if (currentStep < totalSteps) {
-    showStep(currentStep + 1);
-  } else {
-    closeTutorial();
-  }
-}
-
-function tutorialPrev() {
-  if (currentStep > 1) showStep(currentStep - 1);
-}
-
-async function markTutorialSeen() {
+async function finishTour() {
   try {
     await fetch(TUTORIAL_URL, {
       method: 'POST',
@@ -588,9 +386,31 @@ async function markTutorialSeen() {
   } catch {}
 }
 
-// Close on backdrop click
-document.getElementById('tutorialBackdrop')?.addEventListener('click', function(e) {
-  if (e.target === this) closeTutorial();
+function startWelcomeModal() {
+    document.getElementById('tour-welcome-modal').classList.add('active');
+}
+
+function acceptTour() {
+    closeWelcomeModal();
+    startGuidedTour();
+}
+
+function closeWelcomeModal() {
+    document.getElementById('tour-welcome-modal').classList.remove('active');
+    if (!document.body.classList.contains('tour-started')) {
+        finishTour();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (!hasSeenTour) {
+    setTimeout(startWelcomeModal, 800);
+  }
+});
+
+// Close on backdrop click (optional for welcome modal)
+document.getElementById('tour-welcome-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeWelcomeModal();
 });
 </script>
 {% endblock %}
