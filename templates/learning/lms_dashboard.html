@@ -179,9 +179,10 @@
   <main class="max-w-5xl mx-auto px-4 py-8">
 
     <!-- Mes Parcours -->
-    {% if paths_data %}
-    <section class="mb-10" id="onboarding-timeline-step">
-      <h2 class="text-lg font-bold text-navy-700 mb-4">{% translate "Mes Parcours" %}</h2>
+    <div id="onboarding-timeline-step">
+      {% if paths_data %}
+      <section class="mb-10">
+        <h2 class="text-lg font-bold text-navy-700 mb-4">{% translate "Mes Parcours" %}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for item in paths_data %}
         <div class="bg-white rounded-2xl border border-slate-200 p-6 hover:border-navy-300 hover:shadow-card-hover
@@ -276,6 +277,7 @@
       <p class="text-slate-400 text-sm">{% translate "Contactez votre RH pour plus d'informations." %}</p>
     </div>
     {% endif %}
+    </div>
 
     <!-- Mes Certificats -->
     {% if certificates %}
@@ -353,7 +355,7 @@ function startGuidedTour() {
         popover: {
           title: '🧭 {% translate "Ligne de temps d’Onboarding" %}',
           description: '{% translate "C’est votre feuille de route. Les étapes se débloquent jour après jour pour une intégration sans stress." %}',
-          side: "top",
+          side: "bottom",
           align: 'start'
         }
       },
@@ -384,7 +386,7 @@ function startGuidedTour() {
           align: 'center'
         }
       }
-    ]
+    ].filter(step => document.querySelector(step.element) !== null)
   });
 
   driverObj.drive();
