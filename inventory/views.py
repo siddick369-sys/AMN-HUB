@@ -18,7 +18,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from inventory.forms import (
-    AssetForm, AssetTransferForm,
+    AssetForm, AssetTransferForm, EmployeeAssetForm,
     StockItemForm, StockQuickUpdateForm,
     TicketForm, TicketUpdateForm,
 )
@@ -282,6 +282,7 @@ def my_assets(request):
         'assets': assets,
         'assets_count': assets.count(),
         'transfers': transfers,
+        'form': EmployeeAssetForm(),
     }
     return render(request, 'inventory/my_assets.html', context)
 
@@ -348,6 +349,29 @@ def asset_create(request):
             return redirect('inventory:warehouse')
         messages.error(request, _('Formulaire invalide.'))
     return redirect('inventory:warehouse')
+
+
+@login_required
+def asset_self_add(request):
+    """Permet à un employé d'ajouter un équipement à son propre bureau digital."""
+    if request.method == 'POST':
+        form = EmployeeAssetForm(request.POST)
+        if form.is_valid():
+            asset = form.save(commit=False)
+            asset.assigned_to = request.user
+            asset.status = AssetStatus.ASSIGNED
+            asset.assigned_at = timezone.now()
+            asset.save()
+            messages.success(
+                request,
+                _(f'Équipement « {asset.name} » ajouté à votre bureau digital.')
+            )
+            return redirect('inventory:my_assets')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
+    return redirect('inventory:my_assets')
 
 
 # ─────────────────────────────────────────────────────────────────────────────

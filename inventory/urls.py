@@ -23,6 +23,7 @@ urlpatterns = [
 
     # ── Mes Actifs ───────────────────────────────────────────────────────────
     path('my-assets/', views.my_assets, name='my_assets'),
+    path('my-assets/add/', views.asset_self_add, name='asset_self_add'),
     path('my-assets/<int:pk>/', views.asset_detail, name='asset_detail'),
 
     # ── Helpdesk ─────────────────────────────────────────────────────────────

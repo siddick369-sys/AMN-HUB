@@ -63,6 +63,36 @@ class AssetForm(forms.ModelForm):
         }
 
 
+class EmployeeAssetForm(forms.ModelForm):
+    """Formulaire simplifié pour qu'un employé déclare son propre matériel."""
+    class Meta:
+        model = Asset
+        fields = ['tag_amn', 'name', 'category', 'brand', 'model_name', 'serial_number']
+        widgets = {
+            'tag_amn': forms.TextInput(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+                'placeholder': 'ex: AMN-IT-2025-001',
+            }),
+            'name': forms.TextInput(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+                'placeholder': _('Désignation de l\'équipement'),
+            }),
+            'category': forms.Select(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+            }),
+            'brand': forms.TextInput(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+                'placeholder': 'Dell, HP, Lenovo…',
+            }),
+            'model_name': forms.TextInput(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+            }),
+            'serial_number': forms.TextInput(attrs={
+                'class': 'w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-navy-500 focus:border-transparent',
+            }),
+        }
+
+
 class AssetTransferForm(forms.Form):
     """Formulaire de transfert P2P d'un actif."""
     to_employee = forms.ModelChoiceField(
