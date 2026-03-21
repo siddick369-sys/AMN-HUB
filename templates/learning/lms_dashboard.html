@@ -21,7 +21,50 @@
   /* Course card hover */
   .course-link:hover .course-arrow { transform: translateX(4px); }
   .course-arrow { transition: transform 0.2s; }
+
+  /* Premium Driver.js Overrides */
+  .driver-popover {
+    border-radius: 1.5rem !important; /* rounded-3xl */
+    padding: 1.5rem !important;
+    border: none !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important; /* shadow-2xl */
+    max-width: 350px !important;
+  }
+  .driver-popover-title {
+    font-size: 1.125rem !important;
+    font-weight: 800 !important;
+    color: #1e3a8a !important; /* navy-900 */
+    margin-bottom: 0.5rem !important;
+  }
+  .driver-popover-description {
+    font-size: 0.875rem !important;
+    color: #475569 !important; /* slate-600 */
+    line-height: 1.5 !important;
+  }
+  .driver-popover-footer {
+    margin-top: 1.25rem !important;
+    gap: 0.75rem !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+  }
+  .driver-popover-btn {
+    border-radius: 0.75rem !important;
+    padding: 0.625rem 1.25rem !important;
+    font-weight: 700 !important;
+    font-size: 0.75rem !important;
+    transition: all 0.2s !important;
+    text-shadow: none !important;
+  }
+  .driver-popover-next-btn {
+    background: #1e3a8a !important;
+    color: white !important;
+  }
+  .driver-popover-prev-btn {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+  }
 </style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.css"/>
 {% endblock %}
 
 {% block content %}
@@ -55,6 +98,14 @@
                          {% if low_data %}translate-x-5{% else %}translate-x-0{% endif %}"></span>
           </button>
         </div>
+
+        <!-- Pointage Rapide (ID pour le tour) -->
+        <a href="{% url 'attendance:home' %}" id="attendance-step"
+           class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 hover:bg-emerald-100 transition-all shadow-sm">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          </svg>
+        </a>
 
         {% if request.user.is_staff %}
         <a href="{% url 'learning:manager_dashboard' %}"
@@ -107,7 +158,7 @@
           </div>
         </div>
         <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full progress-fill"
+          <div id="duolingo-progress-step" class="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full progress-fill"
                style="width: {% if paths_data %}45{% else %}0{% endif %}%"></div>
         </div>
         <p class="text-xs text-slate-400 mt-0.5">{% translate "Niveau 2 — Apprenant actif" %}</p>
@@ -129,7 +180,7 @@
 
     <!-- Mes Parcours -->
     {% if paths_data %}
-    <section class="mb-10">
+    <section class="mb-10" id="onboarding-timeline-step">
       <h2 class="text-lg font-bold text-navy-700 mb-4">{% translate "Mes Parcours" %}</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {% for item in paths_data %}
@@ -258,8 +309,12 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/driver.js@1.0.1/dist/driver.js.iife.js"></script>
 <script>
 const csrfToken = '{{ csrf_token }}';
+const tourSeenUrl = '{% url "learning:mark_learning_tour_seen" %}';
+const hasSeenTour = {{ has_seen_tour|yesno:"true,false" }};
+
 async function toggleLowData() {
   try {
     await fetch('{% url "learning:toggle_low_data_mode" %}', {
@@ -270,6 +325,100 @@ async function toggleLowData() {
   } catch (err) {
     console.error('Erreur toggle Low-Data:', err);
   }
+}
+
+// ── TOUR GUIDÉ (DRIVER.JS) ───────────────────────────────────────────────────
+function startGuidedTour() {
+  const driver = window.driver.js.driver;
+  const driverObj = driver({
+    showProgress: true,
+    overlayColor: '#1e293b',
+    overlayOpacity: 0.6,
+    nextBtnText: '{% translate "Suivant" %} →',
+    prevBtnText: '← {% translate "Précédent" %}',
+    doneBtnText: '{% translate "C’est parti !" %}',
+    allowClose: false,
+    onDeselected: (element, step, { config, state }) => {
+      // Si on est à la dernière étape et qu'on ferme
+      if (state.activeIndex === 3) {
+        finishTour();
+      }
+    },
+    onDestroyed: () => {
+        finishTour();
+    },
+    steps: [
+      {
+        element: '#onboarding-timeline-step',
+        popover: {
+          title: '🧭 {% translate "Ligne de temps d’Onboarding" %}',
+          description: '{% translate "C’est votre feuille de route. Les étapes se débloquent jour après jour pour une intégration sans stress." %}',
+          side: "top",
+          align: 'start'
+        }
+      },
+      {
+        element: '#attendance-step',
+        popover: {
+          title: '📍 {% translate "Le Pointage Intelligent" %}',
+          description: '{% translate "Marquez votre présence ici. Attention, vous devez être physiquement au bureau et utiliser votre propre téléphone." %}',
+          side: "bottom",
+          align: 'end'
+        }
+      },
+      {
+        element: '#low-data-toggle',
+        popover: {
+          title: '📶 {% translate "Mode Low-Data" %}',
+          description: '{% translate "Connexion lente ? Activez ce mode pour masquer les vidéos et privilégier les contenus légers (Audio/Texte)." %}',
+          side: "bottom",
+          align: 'end'
+        }
+      },
+      {
+        element: '#duolingo-progress-step',
+        popover: {
+          title: '🎮 {% translate "Progression Style AMN" %}',
+          description: '{% translate "Suivez vos succès en temps réel. Terminez vos parcours pour obtenir vos certificats officiels AMN." %}',
+          side: "bottom",
+          align: 'center'
+        }
+      }
+    ]
+  });
+
+  driverObj.drive();
+}
+
+async function finishTour() {
+  try {
+    await fetch(tourSeenUrl, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrfToken }
+    });
+  } catch (err) {
+    console.error('Erreur sauvegarde tour:', err);
+  }
+}
+
+// Déclenchement automatique au chargement
+document.addEventListener('DOMContentLoaded', () => {
+  if (!hasSeenTour) {
+    // Petit délai pour laisser les animations de page se terminer
+    setTimeout(() => {
+        startWelcomeModal();
+    }, 800);
+  }
+});
+
+function startWelcomeModal() {
+    // On pourrait utiliser une modal custom AMN ici avant de lancer Driver.js
+    // Pour cet exercice, on lance Driver.js directement ou une simple confirmation
+    if (confirm('{% translate "Bienvenue dans votre espace de croissance AMN. Souhaitez-vous une visite guidée pour maîtriser vos outils ?" %}')) {
+        startGuidedTour();
+    } else {
+        finishTour(); // Marqué comme vu quand même s'ils refusent
+    }
 }
 </script>
 {% endblock %}

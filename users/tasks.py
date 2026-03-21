@@ -329,3 +329,15 @@ def purge_expired_frozen_accounts():
     expired_accounts.delete()
     logger.info(f'[AMN Purge] {count} compte(s) supprimé(s) définitivement.')
     return count
+
+
+@shared_task(name='users.mark_learning_tour_seen_async')
+def mark_learning_tour_seen_async(user_id):
+    """
+    Marque le tutoriel Learning comme vu de manière asynchrone.
+    """
+    user = _get_user(user_id)
+    if user and not user.has_seen_learning_tour:
+        user.has_seen_learning_tour = True
+        user.save(update_fields=['has_seen_learning_tour'])
+        logger.info(f'[AMN Task] Tour Learning marqué comme vu pour user={user_id}')

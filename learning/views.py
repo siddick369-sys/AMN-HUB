@@ -220,6 +220,7 @@ def lms_dashboard(request):
         'paths_data':   paths_data,
         'certificates': certificates,
         'low_data':     low_data,
+        'has_seen_tour': user.has_seen_learning_tour,
     })
 
 
@@ -234,6 +235,17 @@ def toggle_low_data_mode(request):
     current = request.session.get('low_data_mode', False)
     request.session['low_data_mode'] = not current
     return JsonResponse({'low_data': not current})
+
+
+@login_required
+@require_POST
+def mark_learning_tour_seen(request):
+    """Endpoint AJAX pour marquer le tutoriel Learning comme vu."""
+    user = request.user
+    if not user.has_seen_learning_tour:
+        from users.tasks import mark_learning_tour_seen_async
+        mark_learning_tour_seen_async.delay(user.pk)
+    return JsonResponse({'success': True})
 
 
 # ─────────────────────────────────────────────────────────────────────────────

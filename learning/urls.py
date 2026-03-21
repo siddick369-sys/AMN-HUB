@@ -20,6 +20,7 @@ urlpatterns = [
     path('lms/',
          views.lms_dashboard,
          name='lms_dashboard'),
+    path('lms/tour-seen/', views.mark_learning_tour_seen, name='mark_learning_tour_seen'),
     path('lms/low-data-toggle/',
          views.toggle_low_data_mode,
          name='toggle_low_data_mode'),
