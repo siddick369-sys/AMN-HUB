@@ -92,7 +92,7 @@
         </div>
         <div class="flex items-center gap-3">
           {% if show_tutorial %}
-          <button onclick="startTutorial()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-navy-200 text-navy-600 text-sm font-medium hover:bg-navy-50 transition-colors">
+          <button onclick="startGuidedTour()" class="flex items-center gap-2 px-4 py-2 rounded-xl border border-navy-200 text-navy-600 text-sm font-medium hover:bg-navy-50 transition-colors">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
@@ -409,7 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Close on backdrop click (optional for welcome modal)
-document.getElementById('tour-welcome-modal').addEventListener('click', function(e) {
+document.getElementById('tour-welcome-modal')?.addEventListener('click', function(e) {
   if (e.target === this) closeWelcomeModal();
 });
 </script>
