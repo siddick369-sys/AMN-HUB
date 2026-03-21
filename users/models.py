@@ -197,6 +197,12 @@ class Employee(AbstractUser):
         help_text=_('True si l\'employé a déjà vu le tutoriel interactif du module Learning')
     )
 
+    has_seen_warehouse_tutorial = models.BooleanField(
+        default=False,
+        verbose_name=_('Tutoriel entrepôt vu'),
+        help_text=_('True si l\'employé a déjà vu le tutoriel de la page Entrepôt')
+    )
+
     # ── Métadonnées ──
     updated_at = models.DateTimeField(
         auto_now=True,

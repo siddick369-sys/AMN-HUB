@@ -103,11 +103,20 @@ def inventory_dashboard(request):
 @login_required
 @require_POST
 def mark_tutorial_seen(request):
-    """Endpoint AJAX pour marquer le tutoriel comme vu."""
+    """Endpoint AJAX pour marquer le tutoriel dashboard comme vu."""
     user = request.user
-    if not user.has_seen_inventory_tutorial:
-        user.has_seen_inventory_tutorial = True
-        user.save(update_fields=['has_seen_inventory_tutorial'])
+    user.has_seen_inventory_tutorial = True
+    user.save(update_fields=['has_seen_inventory_tutorial'])
+    return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def mark_warehouse_tutorial_seen(request):
+    """Endpoint AJAX pour marquer le tutoriel entrepôt comme vu."""
+    user = request.user
+    user.has_seen_warehouse_tutorial = True
+    user.save(update_fields=['has_seen_warehouse_tutorial'])
     return JsonResponse({'success': True})
 
 
@@ -124,10 +133,13 @@ def warehouse_manager(request):
 
     tab = request.GET.get('tab', 'stock')
 
-    # ── Onglet Stock Global ──
-    stock_items = StockItem.objects.all().order_by('category', 'name')
-    stock_form = StockItemForm()
-    quick_form = StockQuickUpdateForm()
+    context = {
+        'tab': tab,
+        'stock_items': stock_items,
+        'stock_form': stock_form,
+        'quick_form': quick_form,
+        'show_tutorial': not request.user.has_seen_warehouse_tutorial,
+    }
 
     # ── Onglet Actifs ──
     assets = (

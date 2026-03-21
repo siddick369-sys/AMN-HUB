@@ -13,6 +13,7 @@ urlpatterns = [
 
     # ── Tutoriel ─────────────────────────────────────────────────────────────
     path('tutorial/seen/', views.mark_tutorial_seen, name='tutorial_seen'),
+    path('warehouse/tutorial/seen/', views.mark_warehouse_tutorial_seen, name='warehouse_tutorial_seen'),
 
     # ── Warehouse Manager ────────────────────────────────────────────────────
     path('warehouse/', views.warehouse_manager, name='warehouse'),
